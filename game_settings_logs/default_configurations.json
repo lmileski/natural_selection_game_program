@@ -1,0 +1,78 @@
+{
+    "predator": {
+        "num_initial_predators": 16,
+        "predator_starting_level": 5,
+
+        "rounds_until_starvation": 2,
+        "min_rounds_until_starvation": 1,
+        "max_rounds_until_starvation": 10,
+
+        "one_round_until_starvation_color": "red",
+        "two_rounds_until_starvation_color": "orange",
+        "three_or_more_rounds_until_starvation_color": "yellow",
+
+        "predator_symbol": "square",
+        "predator_outline_color": "dark slate blue",
+        "predator_background_color": "medium slate blue"
+    },
+
+    "prey": {
+        "num_initial_prey": 16,
+        "prey_starting_level": 5,
+        
+        "prey_symbol": "circle",
+        "prey_outline_color": "dark green",
+        "prey_background_color": "medium sea green"
+    },
+
+    "title": {
+        "title_font": "Comic Sans MS",
+        "title_font_color": "midnight blue",
+        "title_background_color": "light steel blue"
+    },
+
+    "left_menu": {
+        "widget_background_color": "slate gray",
+        "scale_slider_color": "dim gray",
+
+        "left_menu_background_color": "slate gray",
+
+        "game_controls_background_color": "cadet blue",
+        "game_controls_text_label_color": "black",
+
+        "customize_settings_background_color": "cadet blue",
+        "customize_settings_text_label_color": "black"
+    },
+
+    "right_menu": {
+        "right_menu_background_color": "slate gray",
+
+        "scoreboard_background_color": "cadet blue",
+        "scoreboard_text_label_color": "black",
+
+        "boardkey_background_color": "cadet blue",
+        "boardkey_text_label_color": "black"
+    },
+
+    "board": {
+        "customized_starting_animals": "off",
+
+        "board_length": 6,
+        "min_board_length": 1,
+        "max_board_length": 8,
+
+        "checkered_color1": "gray",
+        "checkered_color2": "beige",
+        "grid_line_color": "black"
+
+    },
+
+    "change_of_rounds": {
+        "num_rounds": 5,
+        "pause_between_rounds": "on",
+        "delay_between_rounds": 3,
+        "delay_between_random_pawn_placement": 0.3,
+        "delay_between_countdown_labels": 1,
+        "delay_between_square_results_labels": 0.5
+    }
+}
