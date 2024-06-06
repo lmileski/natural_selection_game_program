@@ -878,7 +878,7 @@ class ScoreBoard(tk.Frame):
         Creates the widgets for the inside of this frame
         """
 
-        self.round_label = ttk.Label(self, text='Round 1', font=("Arial", 35, "underline"),
+        self.round_label = ttk.Label(self, text='Round 1', font=("Arial", 32, "underline"),
                                      background=self.background_color, anchor='center')
 
         self.predator_stats_label = ttk.Label(self, text='Predator Stats:', font=("Arial", 16, "bold"),
@@ -925,21 +925,21 @@ class ScoreBoard(tk.Frame):
 
         self.predator_stats_label.grid(column=0, row=1, padx=12, pady=5, sticky='w', columnspan=2)
 
-        self.predator_population_label.grid(column=1, row=2, padx=45, pady=5, sticky='e', columnspan=2)
+        self.predator_population_label.grid(column=0, row=2, padx=50, pady=5, sticky='w', columnspan=3)
         self.predator_population_marker.grid(column=1, row=2, padx=12, pady=5, sticky='e')
 
-        self.predator_level_label.grid(column=1, row=3, padx=45, pady=5, sticky='e', columnspan=2)
+        self.predator_level_label.grid(column=0, row=3, padx=50, pady=5, sticky='w', columnspan=3)
         self.predator_level_marker.grid(column=1, row=3, padx=12, pady=5, sticky='e')
 
-        self.predator_starvation_label.grid(column=1, row=4, padx=45, pady=5, sticky='e', columnspan=2)
+        self.predator_starvation_label.grid(column=0, row=4, padx=36, pady=5, sticky='w', columnspan=3)
         self.predator_starvation_marker.grid(column=1, row=4, padx=12, pady=5, sticky='e')
 
         self.prey_stats_label.grid(column=0, row=5, padx=12, pady=(18, 5), sticky='w', columnspan=2)
 
-        self.prey_population_label.grid(column=1, row=6, padx=45, pady=5, sticky='e', columnspan=2)
+        self.prey_population_label.grid(column=0, row=6, padx=50, pady=5, sticky='w', columnspan=3)
         self.prey_population_marker.grid(column=1, row=6, padx=12, pady=5, sticky='e')
 
-        self.prey_level_label.grid(column=1, row=7, padx=45, pady=5, sticky='e', columnspan=2)
+        self.prey_level_label.grid(column=0, row=7, padx=50, pady=5, sticky='w', columnspan=3)
         self.prey_level_marker.grid(column=1, row=7, padx=12, pady=5, sticky='e')
 
 

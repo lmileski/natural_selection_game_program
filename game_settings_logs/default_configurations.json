@@ -62,8 +62,7 @@
         "max_board_length": 8,
 
         "checkered_color1": "gray",
-        "checkered_color2": "beige",
-        "grid_line_color": "black"
+        "checkered_color2": "beige"
 
     },
 

@@ -135,6 +135,9 @@ class WidgetCommands:
         self.controller = controller
         # for ease of access
         self.view = self.controller.view
+        self.game_controls_frame = self.view.left_menu_frame.game_controls
+        self.configurations_frame = self.view.left_menu_frame.configurations
+        self.scoreboard_frame = self.view.right_menu_frame.scoreboard
         self.model = self.controller.model
         self.settings = self.controller.settings
         self.default_settings = CurrentSettings.default_settings()
@@ -174,23 +177,22 @@ class WidgetCommands:
         # value is passed in as a string representation of a float
         new_value = round(float(value))
         self.settings.update_settings(('change_of_rounds', 'num_rounds', new_value))
-        num_rounds_marker = self.view.left_menu_frame.game_controls.number_of_rounds_scale_marker
+
+        num_rounds_marker = self.game_controls_frame.number_of_rounds_scale_marker
         num_rounds_marker.configure(text=new_value)
     
     def restore_settings_button_command(self) -> None:
         """
         Handles events when the user clicks the Restore Default Settings button
         """
-        configurations = self.view.left_menu_frame.configurations
-
         # hiding all tkinter widgets aside from checkboxes - resetting their value and settings and updating visuals
-        self.view.left_menu_frame.configurations.custom_board_checkbox_value.set(0)
+        self.configurations_frame.custom_board_checkbox_value.set(0)
         self.customize_board_checkbox_command()
 
-        self.view.left_menu_frame.configurations.automatic_round_start_checkbox_value.set(0)
+        self.configurations_frame.automatic_round_start_checkbox_value.set(0)
         self.automatic_round_start_checkbox_command()
 
-        self.view.left_menu_frame.configurations.custom_animals_checkbox_value.set(0)
+        self.configurations_frame.custom_animals_checkbox_value.set(0)
         self.customize_starting_animals_checkbox_command()
     
     def customize_board_checkbox_command(self) -> None:
@@ -198,39 +200,38 @@ class WidgetCommands:
         Handles events when the user clicks the Customize Board checkbox
         """
         # 1 when checked, 0 when unchecked
-        box_checked = self.view.left_menu_frame.configurations.custom_board_checkbox_value.get()
-        configurations_frame = self.view.left_menu_frame.configurations
+        box_checked = self.configurations_frame.custom_board_checkbox_value.get()
         if box_checked == 1: # true
             # showing widgets
-            configurations_frame.custom_board_size_label.grid(
-                **configurations_frame.custom_board_size_label_grid_info
+            self.configurations_frame.custom_board_size_label.grid(
+                **self.configurations_frame.custom_board_size_label_grid_info
             )
-            configurations_frame.custom_board_size_box.grid(
-                **configurations_frame.custom_board_size_box_grid_info
+            self.configurations_frame.custom_board_size_box.grid(
+                **self.configurations_frame.custom_board_size_box_grid_info
             )
-            configurations_frame.custom_checker_color_label.grid(
-                **configurations_frame.custom_checker_color_label_grid_info
+            self.configurations_frame.custom_checker_color_label.grid(
+                **self.configurations_frame.custom_checker_color_label_grid_info
             )
-            configurations_frame.custom_checker_color_box.grid(
-                **configurations_frame.custom_checker_color_box_grid_info
+            self.configurations_frame.custom_checker_color_box.grid(
+                **self.configurations_frame.custom_checker_color_box_grid_info
             )
         else:
             # hiding widgets
-            configurations_frame.custom_board_size_label.grid_forget()
+            self.configurations_frame.custom_board_size_label.grid_forget()
 
-            configurations_frame.custom_board_size_box.grid_forget()
+            self.configurations_frame.custom_board_size_box.grid_forget()
 
-            configurations_frame.custom_checker_color_label.grid_forget()
+            self.configurations_frame.custom_checker_color_label.grid_forget()
 
-            configurations_frame.custom_checker_color_box.grid_forget()
+            self.configurations_frame.custom_checker_color_box.grid_forget()
 
             # updating settings with default board size and colors
             self.settings.update_settings(('board', 'board_length', self.default_settings['board']['board_length']))
             self.settings.update_settings(('board', 'checkered_color1', self.default_settings['board']['checkered_color1']))
             self.settings.update_settings(('board', 'checkered_color2', self.default_settings['board']['checkered_color2']))
             # updating views and scale set for all widgets
-            configurations_frame.custom_board_size_box.set(f'{self.settings.board_length}x{self.settings.board_length}')
-            configurations_frame.custom_checker_color_box.set(
+            self.configurations_frame.custom_board_size_box.set(f'{self.settings.board_length}x{self.settings.board_length}')
+            self.configurations_frame.custom_checker_color_box.set(
                 f'{(self.settings.checkered_color1).capitalize()} x {(self.settings.checkered_color2).capitalize()}')
 
             # redrawing board
@@ -269,35 +270,34 @@ class WidgetCommands:
         """
         # 1 if checked, 0 if not
         box_checked = self.view.left_menu_frame.configurations.automatic_round_start_checkbox_value.get()
-        configurations_frame = self.view.left_menu_frame.configurations
         if box_checked == 1: # true
             # showing widgets
             self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', 'off'))
 
-            configurations_frame.round_delay_label.grid(
-                **configurations_frame.round_delay_label_grid_info
+            self.configurations_frame.round_delay_label.grid(
+                **self.configurations_frame.round_delay_label_grid_info
             )
-            configurations_frame.custom_round_delay_scale.grid(
-                **configurations_frame.custom_round_delay_scale_grid_info
+            self.configurations_frame.custom_round_delay_scale.grid(
+                **self.configurations_frame.custom_round_delay_scale_grid_info
             )
-            configurations_frame.custom_round_delay_scale_marker.grid(
-                **configurations_frame.custom_round_delay_scale_marker_grid_info
+            self.configurations_frame.custom_round_delay_scale_marker.grid(
+                **self.configurations_frame.custom_round_delay_scale_marker_grid_info
             )
         else: # false
             # hiding widgets
-            configurations_frame.round_delay_label.grid_forget()
+            self.configurations_frame.round_delay_label.grid_forget()
 
-            configurations_frame.custom_round_delay_scale.grid_forget()
+            self.configurations_frame.custom_round_delay_scale.grid_forget()
 
-            configurations_frame.custom_round_delay_scale_marker.grid_forget()
+            self.configurations_frame.custom_round_delay_scale_marker.grid_forget()
 
             # updating settings with default round delay
             self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', 'on'))
             self.settings.update_settings(('change_of_rounds', 'delay_between_rounds',
                                            self.default_settings['change_of_rounds']['delay_between_rounds']))
             # updating scale views and markers to default
-            configurations_frame.custom_round_delay_scale_marker.configure(text=f'{self.settings.delay_between_rounds}s')
-            configurations_frame.custom_round_delay_scale.set(self.settings.delay_between_rounds)
+            self.configurations_frame.custom_round_delay_scale_marker.configure(text=f'{self.settings.delay_between_rounds}s')
+            self.configurations_frame.custom_round_delay_scale.set(self.settings.delay_between_rounds)
 
     def round_delay_scale_command(self, value: str) -> None:
         """
@@ -307,7 +307,8 @@ class WidgetCommands:
         new_value = round(float(value))
         self.settings.update_settings(('change_of_rounds',
                                        'delay_between_rounds', new_value))
-        round_delay_marker = self.view.left_menu_frame.configurations.custom_round_delay_scale_marker
+    
+        round_delay_marker = self.configurations_frame.custom_round_delay_scale_marker
         round_delay_marker.configure(text=f'{new_value}s')
 
     def customize_starting_animals_checkbox_command(self) -> None:
@@ -315,148 +316,147 @@ class WidgetCommands:
         Handles events when the user clicks the Customize Starting Animals checkbox
         """
         # 1 if checked, 0 if not
-        box_checked = self.view.left_menu_frame.configurations.custom_animals_checkbox_value.get()
-        configurations_frame = self.view.left_menu_frame.configurations
+        box_checked = self.configurations_frame.custom_animals_checkbox_value.get()
+
         if box_checked == 1: # true
             self.settings.update_settings(('board', 'customized_starting_animals', 'on'))
 
-            configurations_frame.custom_predator_label.grid(
-                **configurations_frame.custom_predator_label_grid_info
+            self.configurations_frame.custom_predator_label.grid(
+                **self.configurations_frame.custom_predator_label_grid_info
             )
 
-            configurations_frame.custom_predator_population_scale_label.grid(
-                **configurations_frame.custom_predator_population_scale_label_grid_info
+            self.configurations_frame.custom_predator_population_scale_label.grid(
+                **self.configurations_frame.custom_predator_population_scale_label_grid_info
             )
 
-            configurations_frame.custom_predator_population_scale.grid(
-                **configurations_frame.custom_predator_population_scale_grid_info
+            self.configurations_frame.custom_predator_population_scale.grid(
+                **self.configurations_frame.custom_predator_population_scale_grid_info
             )
 
-            configurations_frame.predator_population_scale_marker.grid(
-                **configurations_frame.predator_population_scale_marker_grid_info
+            self.configurations_frame.predator_population_scale_marker.grid(
+                **self.configurations_frame.predator_population_scale_marker_grid_info
             )
 
-            configurations_frame.custom_predator_level_scale_label.grid(
-                **configurations_frame.custom_predator_level_scale_label_grid_info
+            self.configurations_frame.custom_predator_level_scale_label.grid(
+                **self.configurations_frame.custom_predator_level_scale_label_grid_info
             )
 
-            configurations_frame.custom_predator_level_scale.grid(
-                **configurations_frame.custom_predator_level_scale_grid_info
+            self.configurations_frame.custom_predator_level_scale.grid(
+                **self.configurations_frame.custom_predator_level_scale_grid_info
             )
 
-            configurations_frame.predator_level_scale_marker.grid(
-                configurations_frame.predator_level_scale_marker_grid_info
+            self.configurations_frame.predator_level_scale_marker.grid(
+                self.configurations_frame.predator_level_scale_marker_grid_info
             )
 
-            configurations_frame.custom_predator_starvation_scale_label.grid(
-                **configurations_frame.custom_predator_starvation_scale_label_grid_info
+            self.configurations_frame.custom_predator_starvation_scale_label.grid(
+                **self.configurations_frame.custom_predator_starvation_scale_label_grid_info
             )
 
-            configurations_frame.custom_predator_starvation_scale.grid(
-                **configurations_frame.custom_predator_starvation_scale_grid_info
+            self.configurations_frame.custom_predator_starvation_scale.grid(
+                **self.configurations_frame.custom_predator_starvation_scale_grid_info
             )
 
-            configurations_frame.starvation_scale_marker.grid(
-                **configurations_frame.starvation_scale_marker_grid_info
+            self.configurations_frame.starvation_scale_marker.grid(
+                **self.configurations_frame.starvation_scale_marker_grid_info
             )
 
-            configurations_frame.custom_prey_label.grid(
-                **configurations_frame.custom_prey_label_grid_info
+            self.configurations_frame.custom_prey_label.grid(
+                **self.configurations_frame.custom_prey_label_grid_info
             )
 
-            configurations_frame.custom_prey_population_scale_label.grid(
-                **configurations_frame.custom_prey_population_scale_label_grid_info
+            self.configurations_frame.custom_prey_population_scale_label.grid(
+                **self.configurations_frame.custom_prey_population_scale_label_grid_info
             )
 
-            configurations_frame.custom_prey_population_scale.grid(
-                **configurations_frame.custom_prey_population_scale_grid_info
+            self.configurations_frame.custom_prey_population_scale.grid(
+                **self.configurations_frame.custom_prey_population_scale_grid_info
             )
 
-            configurations_frame.prey_population_scale_marker.grid(
-                **configurations_frame.prey_population_scale_marker_grid_info
+            self.configurations_frame.prey_population_scale_marker.grid(
+                **self.configurations_frame.prey_population_scale_marker_grid_info
             )
 
-            configurations_frame.custom_prey_level_scale_label.grid(
-                **configurations_frame.custom_prey_level_scale_label_grid_info
+            self.configurations_frame.custom_prey_level_scale_label.grid(
+                **self.configurations_frame.custom_prey_level_scale_label_grid_info
             )
 
-            configurations_frame.custom_prey_level_scale.grid(
-                **configurations_frame.custom_prey_level_scale_grid_info
+            self.configurations_frame.custom_prey_level_scale.grid(
+                **self.configurations_frame.custom_prey_level_scale_grid_info
             )
 
-            configurations_frame.prey_level_scale_marker.grid(
-                **configurations_frame.prey_level_scale_marker_grid_info
+            self.configurations_frame.prey_level_scale_marker.grid(
+                **self.configurations_frame.prey_level_scale_marker_grid_info
             )
 
         else: # false
             # hiding widgets
             self.settings.update_settings(('board', 'customized_starting_animals', 'off'))
 
-            configurations_frame.custom_predator_label.grid_forget()
+            self.configurations_frame.custom_predator_label.grid_forget()
 
-            configurations_frame.custom_predator_population_scale_label.grid_forget()
+            self.configurations_frame.custom_predator_population_scale_label.grid_forget()
 
-            configurations_frame.custom_predator_population_scale.grid_forget()
+            self.configurations_frame.custom_predator_population_scale.grid_forget()
 
-            configurations_frame.predator_population_scale_marker.grid_forget()
+            self.configurations_frame.predator_population_scale_marker.grid_forget()
 
-            configurations_frame.custom_predator_level_scale_label.grid_forget()
+            self.configurations_frame.custom_predator_level_scale_label.grid_forget()
 
-            configurations_frame.custom_predator_level_scale.grid_forget()
+            self.configurations_frame.custom_predator_level_scale.grid_forget()
 
-            configurations_frame.predator_level_scale_marker.grid_forget()
+            self.configurations_frame.predator_level_scale_marker.grid_forget()
 
-            configurations_frame.custom_predator_starvation_scale_label.grid_forget()
+            self.configurations_frame.custom_predator_starvation_scale_label.grid_forget()
 
-            configurations_frame.custom_predator_starvation_scale.grid_forget()
+            self.configurations_frame.custom_predator_starvation_scale.grid_forget()
 
-            configurations_frame.starvation_scale_marker.grid_forget()
+            self.configurations_frame.starvation_scale_marker.grid_forget()
 
-            configurations_frame.custom_prey_label.grid_forget()
+            self.configurations_frame.custom_prey_label.grid_forget()
 
-            configurations_frame.custom_prey_population_scale_label.grid_forget()
+            self.configurations_frame.custom_prey_population_scale_label.grid_forget()
 
-            configurations_frame.custom_prey_population_scale.grid_forget()
+            self.configurations_frame.custom_prey_population_scale.grid_forget()
 
-            configurations_frame.prey_population_scale_marker.grid_forget()
+            self.configurations_frame.prey_population_scale_marker.grid_forget()
 
-            configurations_frame.custom_prey_level_scale_label.grid_forget()
+            self.configurations_frame.custom_prey_level_scale_label.grid_forget()
 
-            configurations_frame.custom_prey_level_scale.grid_forget()
+            self.configurations_frame.custom_prey_level_scale.grid_forget()
 
-            configurations_frame.prey_level_scale_marker.grid_forget()
+            self.configurations_frame.prey_level_scale_marker.grid_forget()
 
-            # restoring all default animal starting stats
-            self.settings.update_settings(('predator', 'num_initial_predators',
-                                           self.default_settings['predator']['num_initial_predators']))
-
-            self.settings.update_settings(('predator', 'predator_starting_level',
-                                           self.default_settings['predator']['predator_starting_level']))
-
-            self.settings.update_settings(('predator', 'rounds_until_starvation',
-                                           self.default_settings['predator']['rounds_until_starvation']))
-
-            self.settings.update_settings(('prey', 'num_initial_prey',
-                                           self.default_settings['prey']['num_initial_prey']))
-
-            self.settings.update_settings(('prey', 'prey_starting_level',
-                                           self.default_settings['prey']['prey_starting_level']))
-
+            # restoring all default animal starting stats and
             # updating scales and scale markers to their default
-            configurations_frame.predator_population_scale_marker.configure(text=self.settings.num_initial_predators)
-            configurations_frame.custom_predator_population_scale.set(self.settings.num_initial_predators)
+            self.predator_population_scale_command(self.default_settings['predator']['num_initial_predators'])
+            self.configurations_frame.custom_predator_population_scale.set(self.settings.num_initial_predators)
 
-            configurations_frame.predator_level_scale_marker.configure(text=self.settings.predator_starting_level)
-            configurations_frame.custom_predator_level_scale.set(self.settings.predator_starting_level)
+            self.predator_level_scale_command(self.default_settings['predator']['predator_starting_level'])
+            self.configurations_frame.custom_predator_level_scale.set(self.settings.predator_starting_level)
 
-            configurations_frame.starvation_scale_marker.configure(text=self.settings.rounds_until_starvation)
-            configurations_frame.custom_predator_starvation_scale.set(self.settings.rounds_until_starvation)
+            self.predator_starvation_scale_command(self.default_settings['predator']['rounds_until_starvation'])
+            self.configurations_frame.custom_predator_starvation_scale.set(self.settings.rounds_until_starvation)
 
-            configurations_frame.prey_population_scale_marker.configure(text=self.settings.num_initial_prey)
-            configurations_frame.custom_prey_population_scale.set(self.settings.num_initial_prey)
+            self.prey_population_scale_command(self.default_settings['prey']['num_initial_prey'])
+            self.configurations_frame.custom_prey_population_scale.set(self.settings.num_initial_prey)
 
-            configurations_frame.prey_level_scale_marker.configure(text=self.settings.prey_starting_level)
-            configurations_frame.custom_prey_level_scale.set(self.settings.prey_starting_level)
+            self.prey_level_scale_command(self.default_settings['prey']['prey_starting_level'])
+            self.configurations_frame.custom_prey_level_scale.set(self.settings.prey_starting_level)
+ 
+    def predator_population_scale_command(self, value: str) -> None:
+        """
+        Handles events when the user toggles the predator population scale
+        """
+        # value is passed in as a string representation of a float
+        new_value = round(float(value))
+        self.settings.update_settings(('predator', 'num_initial_predators', new_value))
+        # modifying configurations display
+        population_scale_marker = self.configurations_frame.predator_population_scale_marker
+        population_scale_marker.configure(text=new_value)
+        # modifying scoreboard display
+        scoreboard_level_marker = self.scoreboard_frame.predator_population_marker
+        scoreboard_level_marker.configure(text=new_value)
 
     def predator_level_scale_command(self, value: str) -> None:
         """
@@ -465,19 +465,13 @@ class WidgetCommands:
         # value is passed in as a string representation of a float
         new_value = round(float(value))
         self.settings.update_settings(('predator', 'predator_starting_level', new_value))
-        level_scale_marker = self.view.left_menu_frame.configurations.predator_level_scale_marker
+        # modifying configurations display
+        level_scale_marker = self.configurations_frame.predator_level_scale_marker
         level_scale_marker.configure(text=new_value)
-        
-    def predator_population_scale_command(self, value: str) -> None:
-        """
-        Handles events when the user toggles the predator population scale
-        """
-        # value is passed in as a string representation of a float
-        new_value = round(float(value))
-        self.settings.update_settings(('predator', 'num_initial_predators', new_value))
-        population_scale_marker = self.view.left_menu_frame.configurations.predator_population_scale_marker
-        population_scale_marker.configure(text=new_value)
-        
+        # modifying scoreboard display
+        scoreboard_level_marker = self.scoreboard_frame.predator_level_marker
+        scoreboard_level_marker.configure(text=new_value)
+
     def predator_starvation_scale_command(self, value: str) -> None:
         """
         Handles events when the user toggles the predator rounds until starvation scale
@@ -485,19 +479,13 @@ class WidgetCommands:
         # value is passed in as a string representation of a float
         new_value = round(float(value))
         self.settings.update_settings(('predator', 'rounds_until_starvation', new_value))
-        starvation_scale_marker = self.view.left_menu_frame.configurations.starvation_scale_marker
+        # modifying configurations display
+        starvation_scale_marker = self.configurations_frame.starvation_scale_marker
         starvation_scale_marker.configure(text=new_value)
-    
-    def prey_level_scale_command(self, value: str) -> None:
-        """
-        Handles events when the user toggles the prey level scale
-        """
-        # value is passed in as a string representation of a float
-        new_value = round(float(value))
-        self.settings.update_settings(('prey', 'prey_starting_level', new_value))
-        level_scale_marker = self.view.left_menu_frame.configurations.prey_level_scale_marker
-        level_scale_marker.configure(text=new_value)
-        
+        # modifying scoreboard display
+        scoreboard_starvation_marker = self.scoreboard_frame.predator_starvation_marker
+        scoreboard_starvation_marker.configure(text=new_value)
+            
     def prey_population_scale_command(self, value: str) -> None:
         """
         Handles events when the user toggles the prey population scale
@@ -505,8 +493,26 @@ class WidgetCommands:
         # value is passed in as a string representation of a float
         new_value = round(float(value))
         self.settings.update_settings(('prey', 'num_initial_prey', new_value))
-        population_scale_marker = self.view.left_menu_frame.configurations.prey_population_scale_marker
+        # modifying configurations display
+        population_scale_marker = self.configurations_frame.prey_population_scale_marker
         population_scale_marker.configure(text=new_value)
+        # modifying scoreboard display
+        scoreboard_population_marker = self.scoreboard_frame.prey_population_marker
+        scoreboard_population_marker.configure(text=new_value)
+
+    def prey_level_scale_command(self, value: str) -> None:
+        """
+        Handles events when the user toggles the prey level scale
+        """
+        # value is passed in as a string representation of a float
+        new_value = round(float(value))
+        self.settings.update_settings(('prey', 'prey_starting_level', new_value))
+        # modifying configurations display
+        level_scale_marker = self.configurations_frame.prey_level_scale_marker
+        level_scale_marker.configure(text=new_value)
+        # modifying scoreboard display
+        scoreboard_level_marker = self.scoreboard_frame.prey_level_marker
+        scoreboard_level_marker.configure(text=new_value)
 
 
 if __name__ == "__main__":

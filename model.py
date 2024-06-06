@@ -75,7 +75,6 @@ class CurrentSettings:
     max_board_length: int
     checkered_color1: str
     checkered_color2: str
-    grid_line_color: str
     # change_of_rounds
     num_rounds: int
     pause_between_rounds: str
