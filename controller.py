@@ -148,13 +148,17 @@ class WidgetCommands:
         """
         self.controller.setup_board_model()
         self.view.board_frame.randomly_draw_all_animals()
+
+
+        
+        # erasing all previous animal pawns from board 
+        #self.erase_all_animals()
     
     def reset_game_button_command(self) -> None:
         """
         Handles events when the user clicks the Reset Game button
         """
         
-    
     def pause_game_button_command(self) -> None:
         """
         Handles events when the user clicks the Pause Game button

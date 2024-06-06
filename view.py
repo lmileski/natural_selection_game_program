@@ -24,7 +24,6 @@ View class frame heirarchy:
 import tkinter as tk
 from tkinter import ttk
 import random
-import time
 from model import CurrentSettings, SquareModel, PredatorModel, PreyModel
 
 
@@ -84,7 +83,7 @@ class BoardView(tk.Frame):
         # clearing board
         if self.board_visuals_1d:
             for square_view in self.board_visuals_1d:
-                square_view.destroy()
+                square_view.destroy() # removing from gui
                 del square_view # removing it from memory and the list
         self.board_visuals_2d = [[] for _ in range(board_length)]
 
@@ -130,42 +129,62 @@ class BoardView(tk.Frame):
         First erases all existing animal pieces from every square 
         then draws all new animal pieces on the board randomly
         """
-        self.erase_all_animals()
+        self.delay_between_pawn_placement = self.parent.settings.delay_between_random_pawn_placement
         # grabbing a list of all animal pawns
-        all_animal_pawns = []
+        self.all_animal_pawns: list['PredatorView | PreyView'] = [] # type: ignore
         for square_view in self.board_visuals_1d:
             for animal_pawn in square_view.square_animal_views:
-                all_animal_pawns.append(animal_pawn)
+                self.all_animal_pawns.append(animal_pawn)
+
         # randomly placing animals 1 by 1 at start of game
-        while all_animal_pawns:
-            random_pawn = random.choice(all_animal_pawns)
-            random_pawn.draw_piece()
-            all_animal_pawns.remove(random_pawn)
-            # adding delay to placement
-            time.sleep(self.parent.settings.delay_between_square_results_labels)
+        self.place_pawn()
     
-    def diagonal_matrix_draw_all_animals(self):
+    def place_pawn(self):
         """
-        Draws all animal pawns in all squares from the top left of the board
+        Draws a single pawn on a square then schedules itself
+        to be called again after the delay_between_pawn_placement
+        """
+        if self.all_animal_pawns:
+            random_pawn = random.choice(self.all_animal_pawns)
+            random_pawn.draw_piece()
+            self.all_animal_pawns.remove(random_pawn)
+            # adding delay to placement
+            self.after(int(self.delay_between_pawn_placement), self.place_pawn)
+    
+    def diagonal_matrix_draw_all_results(self):
+        """
+        Draws all square winner/loser symbols from the top left of the board
         to the bottom right of the board
         Function to be called during the middle of every round to show each square's results
         """
+        self.result_delay = self.parent.settings.delay_between_square_results_labels
+        self.num_diagonal_sections = len(self.board_visuals_diagonal_matrix)
         # keeping track of previous symbols displayed to forget them after the delay between square results
-        previous_square_winner_symbols = []
-        visual_effect_delay = self.parent.settings.delay_between_square_results_labels
-        for diagonal_section in self.board_visuals_diagonal_matrix:
+        self.previous_square_winner_symbols = []
+        # drawing the feature
+        self.draw_section_results(0)
+
+    def draw_section_results(self, index: int):
+        """
+        Draws the result symbols for a diagonal section of the maze
+        Waits delay_between_square_results_labels until the next call of itself
+        """
+        if index < self.num_diagonal_sections:
             # making last diagonal section square result symbols disappear/destroy
-            for previous_square_winner_symbol in previous_square_winner_symbols:
+            for previous_square_winner_symbol in self.previous_square_winner_symbols:
                 previous_square_winner_symbol.destroy() # removes symbol from gui
                 del previous_square_winner_symbol # removes symbol from list
+
             # displaying current diagonal sections square results
-            for square_view in diagonal_section:
+            for square_view in self.board_visuals_diagonal_matrix[index]:
                 square_view.display_square_winner()
-                previous_square_winner_symbols.append(square_view.square_winner_canvas)
+                self.previous_square_winner_symbols.append(square_view.square_winner_canvas)
+
             # adding delay to square diagonal sections being displayed
-            time.sleep(visual_effect_delay)
-        # forgetting any square symbols left (bottom right square)
-        previous_square_winner_symbols[0].destroy()
+            self.after(int(self.result_delay), self.draw_section_results, index+1)
+        else:
+            # forgetting any square symbols left (bottom right square)
+            self.previous_square_winner_symbols[0].destroy()
 
     def produce_diagonal_matrix(self):
         """
@@ -392,6 +411,7 @@ class PredatorView(tk.Frame):
         self.parent = parent
         self.level = data.skill_level
         self.birth_round = data.birth_round
+        self.relative_placement = relative_placement
         hunger_level = data.rounds_until_starvation
         if hunger_level == 1:
             self.hunger_color = parent.parent.parent.settings.one_round_until_starvation_color
@@ -403,10 +423,6 @@ class PredatorView(tk.Frame):
         # depending on settings (board dimensions), choose a certain border width
         super().__init__(parent, bd=2, relief='solid', background=self.hunger_color,
                          highlightbackground=outline_color)
-        # putting animal frame/text in the tile's frame
-        self.draw_piece()
-        # placing frame and coloring it in
-        self.place(relx=relative_placement[0], rely=relative_placement[1], relwidth=0.2, relheight=0.2)
 
     def draw_piece(self):
         # depending on board_length, choosing certain font sizes and birth round label padding
@@ -426,6 +442,9 @@ class PredatorView(tk.Frame):
         self.level_label.grid(row=0, column=0, sticky='se', padx=birth_label_padding, pady=birth_label_padding)
         self.birth_label.grid(row=0, column=0, sticky='nw', padx=birth_label_padding, pady=birth_label_padding)
 
+        # placing frame and coloring it in
+        self.place(relx=self.relative_placement[0], rely=self.relative_placement[1], relwidth=0.2, relheight=0.2)
+
 
 class PreyView(tk.Canvas):
     """
@@ -443,16 +462,14 @@ class PreyView(tk.Canvas):
             - (1) the relative y value within the square frame to place the piece (0-1)
         """
         # attributing canvas in parent tile frame
-        super().__init__(parent, background=frame_background_color, highlightthickness=0)
+        super().__init__(parent, background=frame_background_color,
+                         highlightbackground=outline_color, highlightthickness=0)
         self.parent = parent
         self.level = data.skill_level
         self.birth_round = data.birth_round
         self.circle_background_color = circle_background_color
         self.outline_color = outline_color
-        # must place frame before drawing pieces for winfo_width/height to work
-        self.place(relx=relative_placement[0], rely=relative_placement[1], relwidth=0.2, relheight=0.2)
-        # putting animal frame/text in the tile's frame
-        self.draw_piece()
+        self.relative_placement = relative_placement
 
     def draw_piece(self):
         """
@@ -461,6 +478,8 @@ class PreyView(tk.Canvas):
         Inside the middle of the circle is a level label
         On the top left edge of the circle is a birth label
         """
+        # must place frame before drawing pieces for winfo_width/height to work
+        self.place(relx=self.relative_placement[0], rely=self.relative_placement[1], relwidth=0.2, relheight=0.2)
         # updates and calculates size of the frame
         self.update_idletasks()
         width, height = self.winfo_width()-3, self.winfo_height()-3
