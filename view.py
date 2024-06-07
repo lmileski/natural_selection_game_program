@@ -112,7 +112,7 @@ class BoardView(tk.Frame):
         # adding all SquareView frames to the board
         for x in range(board_length):
             for y in range(board_length):
-                if (x-y) % 2 == 0:
+                if (x-y) % 2 == 1:
                     color = checker_color_1
                 else:
                     color = checker_color_2
@@ -420,16 +420,24 @@ class PredatorView(tk.Frame):
             self.hunger_color = parent.parent.parent.settings.two_rounds_until_starvation_color
         else:
             self.hunger_color = parent.parent.parent.settings.three_or_more_rounds_until_starvation_color
+        
+        board_length = self.parent.parent.parent.settings.board_length
+        if board_length < 3:
+            border_thickness = 4
+        elif board_length < 6:
+            border_thickness = 3
+        else:
+            border_thickness = 2
 
         # depending on settings (board dimensions), choose a certain border width
-        super().__init__(parent, bd=2, relief='solid', background=self.hunger_color,
-                         highlightbackground=outline_color)
+        super().__init__(parent, bd=0, relief='solid', background=self.hunger_color,
+                         highlightbackground=outline_color, highlightthickness=border_thickness)
 
     def draw_piece(self):
         # depending on board_length, choosing certain font sizes and birth round label padding
         board_length = self.parent.parent.parent.settings.board_length
 
-        level_label_font_size = 58//board_length
+        level_label_font_size = 55//board_length
         birth_label_font_size = 38//board_length
 
         level_label_padx = (0, 37//board_length)
@@ -493,15 +501,24 @@ class PreyView(tk.Canvas):
         width, height = self.winfo_width()-3, self.winfo_height()-3
         x0, y0 = 3, 3  # top left coordinates of bounding rectangle
         x1, y1 = width, height  # bottom right coordinates of bounding rectangle
+
+        board_length = self.parent.parent.parent.settings.board_length
+        if board_length < 3:
+            border_thickness = 4
+        elif board_length < 6:
+            border_thickness = 3
+        else:
+            border_thickness = 2
+
         # depending on settings (board dimensions), choose a certain border width
-        self.create_oval(x0, y0, x1, y1, fill=self.circle_background_color, outline=self.outline_color)
+        self.create_oval(x0, y0, x1, y1, fill=self.circle_background_color, outline=self.outline_color, width=border_thickness)
         # depending on board_length, choosing certain font sizes and birth round label padding
         board_length = self.parent.parent.parent.settings.board_length
 
-        level_label_font_size = 58//board_length
+        level_label_font_size = 55//board_length
         birth_label_font_size = 38//board_length
 
-        level_label_padx = (0, 55//board_length)
+        level_label_padx = (0, 58//board_length)
         level_label_pady = (0, 38//board_length)
 
         birth_label_padx = (58//board_length, 0)
@@ -690,10 +707,14 @@ class Configurations(tk.Frame):
         self.custom_board_size_box.set(f"{board_size}x{board_size}")
         
         self.custom_checker_color_label = ttk.Label(self, text='Board Colors: ', background=self.background_color, font=("Arial", 13))
-        self.custom_checker_color_box = ttk.Combobox(self, values=[f'Gray x Beige', 'Gray x White', 'Beige x White', 'Pink x White'],
+        self.custom_checker_color_box = ttk.Combobox(self, values=[f'Gray x White', 'Blue x White', 'Pink x White', 'Purple x White'],
                                                 state='readonly', width=13)
         color1 = self.parent.parent.settings.checkered_color1
         color2 = self.parent.parent.settings.checkered_color2
+        if color1 == 'light slate gray':
+            color1 = 'gray'
+        if color2 == 'mint cream':
+            color2 = 'white'
         self.custom_checker_color_box.set(f"{(color1).capitalize()} x {(color2).capitalize()}")
 
         # adding labels and scales for the Customize Starting Animals options

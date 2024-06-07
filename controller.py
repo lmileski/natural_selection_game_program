@@ -277,6 +277,21 @@ class WidgetCommands:
         x_index = selection.index('x')
         checker_color1 = selection[:x_index-1].lower()
         checker_color2 = selection[x_index+2:].lower()
+
+        # finding specific color names
+        if checker_color1 == 'gray':
+            checker_color1 = 'light slate gray'
+        elif checker_color1 == 'blue':
+            checker_color1 = 'sky blue'
+        elif checker_color1 == 'purple':
+            checker_color1 = 'light slate blue'
+        else:
+            checker_color1 = 'thistle'
+        # pink remains pink
+
+        # only checker color 2 option is white - this color is close enough
+        checker_color2 = 'mint cream'
+        
         self.settings.update_settings(('board', 'checkered_color1', checker_color1))
         self.settings.update_settings(('board', 'checkered_color2', checker_color2))
         # redrawing the board
