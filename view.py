@@ -595,6 +595,15 @@ class LeftMenu(tk.Frame):
         # creating child frames - pack from top to bottom upon construction
         self.game_controls = GameControls(self)
         self.configurations = Configurations(self)
+        
+        # creating an advisory label the default starting animals when user chooses a 1x1 board size
+        self.board_size_advisory_label = ttk.Label(self, text="Default starting animal pop. exceeds a 1x1 board's pop. capacity",
+                                                   font=("Arial", 11), foreground='darkorange3',
+                                                   background= self.parent.settings.left_menu_background_color)
+        self.board_size_advisory_label.pack(pady=3)
+        self.board_size_advisory_label_pack_info = self.board_size_advisory_label.pack_info()
+        self.board_size_advisory_label.pack_forget()
+
         # placing the menu within the window
         self.place(relx=0, rely=0.1, relwidth=0.3, relheight=0.9)
 
@@ -707,12 +716,12 @@ class Configurations(tk.Frame):
         self.custom_board_size_box.set(f"{board_size}x{board_size}")
         
         self.custom_checker_color_label = ttk.Label(self, text='Board Colors: ', background=self.background_color, font=("Arial", 13))
-        self.custom_checker_color_box = ttk.Combobox(self, values=[f'Gray x White', 'Blue x White', 'Pink x White', 'Purple x White'],
+        self.custom_checker_color_box = ttk.Combobox(self, values=[f'Brown x White', 'Gray x White', 'Blue x White', 'Pink x White', 'Blue x Pink'],
                                                 state='readonly', width=13)
         color1 = self.parent.parent.settings.checkered_color1
         color2 = self.parent.parent.settings.checkered_color2
-        if color1 == 'light slate gray':
-            color1 = 'gray'
+        if color1 == 'navajowhite4':
+            color1 = 'brown'
         if color2 == 'mint cream':
             color2 = 'white'
         self.custom_checker_color_box.set(f"{(color1).capitalize()} x {(color2).capitalize()}")

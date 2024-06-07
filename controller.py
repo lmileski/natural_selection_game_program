@@ -230,13 +230,22 @@ class WidgetCommands:
             self.configurations_frame.custom_checker_color_box.grid_forget()
 
             # updating settings with default board size and colors
+            specific_color1 = self.default_settings['board']['checkered_color1']
+            specific_color2 = self.default_settings['board']['checkered_color2']
+
             self.settings.update_settings(('board', 'board_length', self.default_settings['board']['board_length']))
-            self.settings.update_settings(('board', 'checkered_color1', self.default_settings['board']['checkered_color1']))
-            self.settings.update_settings(('board', 'checkered_color2', self.default_settings['board']['checkered_color2']))
+            self.settings.update_settings(('board', 'checkered_color1', specific_color1))
+            self.settings.update_settings(('board', 'checkered_color2', specific_color2))
+
             # updating views and scale set for all widgets
+            if specific_color1 == 'navajowhite4':
+                specific_color1 = 'brown' # not specific anymore
+            if specific_color2 == 'mint cream':
+                specific_color2 = 'white' # not specific anymore
+
             self.configurations_frame.custom_board_size_box.set(f'{self.settings.board_length}x{self.settings.board_length}')
             self.configurations_frame.custom_checker_color_box.set(
-                f'{(self.settings.checkered_color1).capitalize()} x {(self.settings.checkered_color2).capitalize()}')
+                f'{(specific_color1).capitalize()} x {(specific_color2).capitalize()}')
 
             # redrawing board
             self.view.board_frame.draw_board()
@@ -267,6 +276,25 @@ class WidgetCommands:
         else:
             self.configurations_frame.custom_prey_population_scale.set(self.settings.num_initial_prey)
 
+        # special case where if the user selects a 1x1 board, they must customize starting animals - default pop > 1x1 board pop capacity
+        if self.settings.board_length == 1:
+            # checking animal customization checkbox
+            self.configurations_frame.custom_animals_checkbox_value.set(1)
+            # showing all its widgets
+            self.customize_starting_animals_checkbox_command()
+            # disabling the checkbox
+            self.configurations_frame.custom_animals_checkbutton.configure(state='disabled')
+            # adding advisory label
+            self.view.left_menu_frame.board_size_advisory_label.pack(
+                self.view.left_menu_frame.board_size_advisory_label_pack_info
+            )
+        else:
+            # undisabling checkbox value if board length isn't 1x1
+            if self.configurations_frame.custom_animals_checkbutton.cget('state') == 'disabled':
+                self.configurations_frame.custom_animals_checkbutton.configure(state='normal')
+            # removing advisory label
+            self.view.left_menu_frame.board_size_advisory_label.pack_forget()
+
     def board_colors_combobox_command(self, event: Event) -> None:
         """
         Handles events when the user selects an option from the board colors combobox
@@ -279,18 +307,20 @@ class WidgetCommands:
         checker_color2 = selection[x_index+2:].lower()
 
         # finding specific color names
-        if checker_color1 == 'gray':
+        if checker_color1 == 'brown':
+            checker_color1 = 'navajowhite4'
+        elif checker_color1 == 'gray':
             checker_color1 = 'light slate gray'
         elif checker_color1 == 'blue':
             checker_color1 = 'sky blue'
-        elif checker_color1 == 'purple':
-            checker_color1 = 'light slate blue'
-        else:
+        else: # pink
             checker_color1 = 'thistle'
-        # pink remains pink
 
         # only checker color 2 option is white - this color is close enough
-        checker_color2 = 'mint cream'
+        if checker_color2 == 'white':
+            checker_color2 = 'mint cream'
+        else: # pink
+            checker_color2 = 'thistle' 
         
         self.settings.update_settings(('board', 'checkered_color1', checker_color1))
         self.settings.update_settings(('board', 'checkered_color2', checker_color2))

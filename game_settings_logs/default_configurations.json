@@ -35,22 +35,22 @@
         "widget_background_color": "slate gray",
         "scale_slider_color": "dim gray",
 
-        "left_menu_background_color": "slate gray",
+        "left_menu_background_color": "gainsboro",
 
-        "game_controls_background_color": "cadet blue",
+        "game_controls_background_color": "light steel blue",
         "game_controls_text_label_color": "black",
 
-        "customize_settings_background_color": "cadet blue",
+        "customize_settings_background_color": "light steel blue",
         "customize_settings_text_label_color": "black"
     },
 
     "right_menu": {
-        "right_menu_background_color": "slate gray",
+        "right_menu_background_color": "gainsboro",
 
-        "scoreboard_background_color": "cadet blue",
+        "scoreboard_background_color": "light steel blue",
         "scoreboard_text_label_color": "black",
 
-        "boardkey_background_color": "cadet blue",
+        "boardkey_background_color": "light steel blue",
         "boardkey_text_label_color": "black"
     },
 
@@ -61,7 +61,7 @@
         "min_board_length": 1,
         "max_board_length": 8,
 
-        "checkered_color1": "light slate gray",
+        "checkered_color1": "navajowhite4",
         "checkered_color2": "mint cream"
     },
 
