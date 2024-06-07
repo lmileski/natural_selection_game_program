@@ -264,8 +264,9 @@ class SquareView(tk.Frame):
             the others are distributed down column 2
             
         There is a population cap of 4 prey and 4 predators per square at the start of the round
-        All animal pawns have a relative side length of 0.2
-        They are spaced from each other and the square frame by a relative length of 0.1
+        All animal pawns have a relative side length of 0.25
+        They are spaced from the parent frame's border by a length of 0.05
+        They are spaced from each other by a length of 0.075
         """
         # sorting by descending skill levels to format the animal pieces by level
         self.square_data.predators.sort(reverse=True, key=lambda prey: prey.skill_level)
@@ -282,23 +283,23 @@ class SquareView(tk.Frame):
             # finding placement and placing pawn according to pattern described in docstring
             if i <= 2:
                 if i == 0:
-                    relative_placement = (0.1, 0.1)
+                    relative_placement = (0.05, 0.05)
                 elif i == 1:
-                    relative_placement = (0.1, 0.4)
+                    relative_placement = (0.05, 0.375)
                 else:
-                    relative_placement = (0.1, 0.7)
+                    relative_placement = (0.05, 0.7)
             elif i <= 5:
                 if i == 3:
-                    relative_placement = (0.4, 0.7)
+                    relative_placement = (0.375, 0.7)
                 elif i == 4:
-                    relative_placement = (0.4, 0.4)
+                    relative_placement = (0.375, 0.375)
                 else:
-                    relative_placement = (0.4, 0.1)
+                    relative_placement = (0.375, 0.05)
             else:
                 if i == 6:
-                    relative_placement = (0.7, 0.1)
+                    relative_placement = (0.7, 0.05)
                 elif i == 7:
-                    relative_placement = (0.7, 0.4)
+                    relative_placement = (0.7, 0.375)
                 else:
                     relative_placement = (0.7, 0.7)
 
@@ -313,9 +314,9 @@ class SquareView(tk.Frame):
             if len(prey) < 4:
                 for i, p in enumerate(prey):
                     if i == 0:
-                        relative_placement = (0.7, 0.1)
+                        relative_placement = (0.7, 0.05)
                     elif i == 1:
-                        relative_placement = (0.7, 0.4)
+                        relative_placement = (0.7, 0.375)
                     else:
                         relative_placement = (0.7, 0.7)
 
@@ -326,11 +327,11 @@ class SquareView(tk.Frame):
                 # special pattern change when there are 4 prey
                 for i, p in enumerate(prey):
                     if i == 0:
-                        relative_placement = (0.4, 0.1)
+                        relative_placement = (0.375, 0.05)
                     elif i == 1:
-                        relative_placement = (0.7, 0.1)
+                        relative_placement = (0.7, 0.05)
                     elif i == 2:
-                        relative_placement = (0.7, 0.4)
+                        relative_placement = (0.7, 0.375)
                     else:
                         relative_placement = (0.7, 0.7)
 
@@ -427,9 +428,16 @@ class PredatorView(tk.Frame):
     def draw_piece(self):
         # depending on board_length, choosing certain font sizes and birth round label padding
         board_length = self.parent.parent.parent.settings.board_length
-        level_label_font_size = 100//(board_length*2)
-        birth_label_font_size = 60//(board_length*2)
-        birth_label_padding = 40//(board_length*2)
+
+        level_label_font_size = 58//board_length
+        birth_label_font_size = 38//board_length
+
+        level_label_padx = (0, 37//board_length)
+        level_label_pady = (0, 20//board_length)
+
+        birth_label_padx = (30//board_length, 0)
+        birth_label_pady = (20//board_length, 0)
+
 
         self.level_label = ttk.Label(self, font=('Arial', level_label_font_size, 'bold'),
                                      text=self.level, background=self.hunger_color, anchor='center')
@@ -439,11 +447,11 @@ class PredatorView(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
-        self.level_label.grid(row=0, column=0, sticky='se', padx=birth_label_padding, pady=birth_label_padding)
-        self.birth_label.grid(row=0, column=0, sticky='nw', padx=birth_label_padding, pady=birth_label_padding)
+        self.level_label.grid(row=0, column=0, sticky='se', padx=level_label_padx, pady=level_label_pady)
+        self.birth_label.grid(row=0, column=0, sticky='nw', padx=birth_label_padx, pady=birth_label_pady)
 
         # placing frame and coloring it in
-        self.place(relx=self.relative_placement[0], rely=self.relative_placement[1], relwidth=0.2, relheight=0.2)
+        self.place(relx=self.relative_placement[0], rely=self.relative_placement[1], relwidth=0.25, relheight=0.25)
 
 
 class PreyView(tk.Canvas):
@@ -479,7 +487,7 @@ class PreyView(tk.Canvas):
         On the top left edge of the circle is a birth label
         """
         # must place frame before drawing pieces for winfo_width/height to work
-        self.place(relx=self.relative_placement[0], rely=self.relative_placement[1], relwidth=0.2, relheight=0.2)
+        self.place(relx=self.relative_placement[0], rely=self.relative_placement[1], relwidth=0.25, relheight=0.25)
         # updates and calculates size of the frame
         self.update_idletasks()
         width, height = self.winfo_width()-3, self.winfo_height()-3
@@ -489,20 +497,26 @@ class PreyView(tk.Canvas):
         self.create_oval(x0, y0, x1, y1, fill=self.circle_background_color, outline=self.outline_color)
         # depending on board_length, choosing certain font sizes and birth round label padding
         board_length = self.parent.parent.parent.settings.board_length
-        level_label_font_size = 100//(board_length*2)
-        birth_label_font_size = 60//(board_length*2)
-        birth_label_padding = 40//(board_length*2)
+
+        level_label_font_size = 58//board_length
+        birth_label_font_size = 38//board_length
+
+        level_label_padx = (0, 55//board_length)
+        level_label_pady = (0, 38//board_length)
+
+        birth_label_padx = (58//board_length, 0)
+        birth_label_pady = (48//board_length, 0)
 
         self.level_label = ttk.Label(self, text=self.level, font=('Arial', level_label_font_size, 'bold'),
-                                     background=self.circle_background_color, anchor='center')
+                                     background=self.circle_background_color)
         self.birth_label = ttk.Label(self, text=self.birth_round, font=('Arial', birth_label_font_size, 'bold'),
                                      background=self.circle_background_color)
         # placing labels
         self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(0, weight=1)
 
-        self.level_label.grid(row=0, column=0, padx=0.5, pady=0.5)
-        self.birth_label.grid(row=0, column=0, sticky='w', padx=birth_label_padding, pady=birth_label_padding)
+        self.level_label.grid(row=0, column=0, sticky='se', padx=level_label_padx, pady=level_label_pady)
+        self.birth_label.grid(row=0, column=0, sticky='nw', padx=birth_label_padx, pady=birth_label_pady)
 
 
 class Title(tk.Frame):
