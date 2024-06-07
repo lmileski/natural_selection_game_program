@@ -69,8 +69,8 @@
     "change_of_rounds": {
         "num_rounds": 5,
         "pause_between_rounds": "on",
-        "delay_between_rounds": 3000,
-        "delay_between_random_pawn_placement": 50,
+        "delay_between_rounds": 3,
+        "delay_between_random_pawn_placement": 5,
         "delay_between_countdown_labels": 1000,
         "delay_between_square_results_labels": 500
     }

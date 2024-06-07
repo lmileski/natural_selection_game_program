@@ -150,7 +150,7 @@ class WidgetCommands:
         self.view.board_frame.randomly_draw_all_animals()
 
 
-        
+
         # erasing all previous animal pawns from board 
         #self.erase_all_animals()
     
@@ -252,6 +252,20 @@ class WidgetCommands:
 
         self.settings.update_settings(('board', 'board_length', new_board_length))
         self.view.board_frame.draw_board()
+        # updating population scales/markers - population capacity depends on number of squares
+        max_pop_capacity = (self.settings.board_length**2) * 4
+
+        self.configurations_frame.custom_predator_population_scale.configure(to=max_pop_capacity)
+        if int(self.configurations_frame.predator_population_scale_marker.cget('text')) > max_pop_capacity:
+            self.predator_population_scale_command(str(max_pop_capacity))
+        else:
+            self.configurations_frame.custom_predator_population_scale.set(self.settings.num_initial_predators)
+
+        self.configurations_frame.custom_prey_population_scale.configure(to=max_pop_capacity)
+        if int(self.configurations_frame.prey_population_scale_marker.cget('text')) > max_pop_capacity:
+            self.prey_population_scale_command(str(max_pop_capacity))
+        else:
+            self.configurations_frame.custom_prey_population_scale.set(self.settings.num_initial_prey)
 
     def board_colors_combobox_command(self, event: Event) -> None:
         """
