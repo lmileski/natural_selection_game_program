@@ -277,7 +277,6 @@ class SquareView(tk.Frame):
         # nicknaming
         predators = self.square_data.predators
         prey = self.square_data.prey
-        predator_background_color = self.parent.parent.settings.predator_background_color
         predator_outline_color = self.parent.parent.settings.predator_outline_color
         prey_background_color = self.parent.parent.settings.prey_background_color
         prey_outline_color = self.parent.parent.settings.prey_outline_color
@@ -307,40 +306,40 @@ class SquareView(tk.Frame):
                     relative_placement = (0.7, 0.7)
 
             # creating animal to display and then adding it to the square's animal views list
-            predator_to_display = PredatorView(self, relative_placement, predator, predator_background_color, predator_outline_color)
+            predator_to_display = PredatorView(self, relative_placement, predator, predator_outline_color)
             self.square_animal_views.append(predator_to_display)
         
 
-            # drawing predators from the top right
-            # not possible for there to be more than 4 predators at the end of the round
-            # finding placement and placing pawn according to pattern described in docstring
-            if len(prey) < 4:
-                for i, p in enumerate(prey):
-                    if i == 0:
-                        relative_placement = (0.7, 0.05)
-                    elif i == 1:
-                        relative_placement = (0.7, 0.375)
-                    else:
-                        relative_placement = (0.7, 0.7)
+        # drawing predators from the top right
+        # not possible for there to be more than 4 predators at the end of the round
+        # finding placement and placing pawn according to pattern described in docstring
+        if len(prey) < 4:
+            for i, p in enumerate(prey):
+                if i == 0:
+                    relative_placement = (0.7, 0.05)
+                elif i == 1:
+                    relative_placement = (0.7, 0.375)
+                else:
+                    relative_placement = (0.7, 0.7)
 
-                    # creating animal to display and then adding it to the square's animal views list
-                    prey_to_display = PreyView(self, relative_placement, p, self.background_color, prey_background_color, prey_outline_color)
-                    self.square_animal_views.append(prey_to_display)
-            else:
-                # special pattern change when there are 4 prey
-                for i, p in enumerate(prey):
-                    if i == 0:
-                        relative_placement = (0.375, 0.05)
-                    elif i == 1:
-                        relative_placement = (0.7, 0.05)
-                    elif i == 2:
-                        relative_placement = (0.7, 0.375)
-                    else:
-                        relative_placement = (0.7, 0.7)
+                # creating animal to display and then adding it to the square's animal views list
+                prey_to_display = PreyView(self, relative_placement, p, self.background_color, prey_background_color, prey_outline_color)
+                self.square_animal_views.append(prey_to_display)
+        else:
+            # special pattern change when there are 4 prey
+            for i, p in enumerate(prey):
+                if i == 0:
+                    relative_placement = (0.375, 0.05)
+                elif i == 1:
+                    relative_placement = (0.7, 0.05)
+                elif i == 2:
+                    relative_placement = (0.7, 0.375)
+                else:
+                    relative_placement = (0.7, 0.7)
 
-                    # creating animal to display and then adding it to the square's animal views list
-                    prey_to_display = PreyView(self, relative_placement, p, self.background_color, prey_background_color, prey_outline_color)
-                    self.square_animal_views.append(prey_to_display)
+                # creating animal to display and then adding it to the square's animal views list
+                prey_to_display = PreyView(self, relative_placement, p, self.background_color, prey_background_color, prey_outline_color)
+                self.square_animal_views.append(prey_to_display)
 
     def draw_animals(self):
         """
@@ -404,8 +403,7 @@ class PredatorView(tk.Frame):
     parent: SquareView
     relative_placement: tuple[float, float]
 
-    def __init__(self, parent: 'SquareView', relative_placement: tuple[float, float], data: PredatorModel,
-                 background_color: str, outline_color: str):
+    def __init__(self, parent: 'SquareView', relative_placement: tuple[float, float], data: PredatorModel, outline_color: str):
         """
         relative_placement (tuple[float, float]):
             - (0) the relative x value within the square frame to place the piece (0-1)
@@ -1051,45 +1049,106 @@ class BoardKey(tk.Frame):
         self.parent = parent
         self.background_color = self.parent.parent.settings.boardkey_background_color
         # assigning the board key frame to be within the right menu and setting border
-        super().__init__(parent, bd=2, relief='solid', background=self.background_color)
+        super().__init__(parent, bd=3, relief='solid', background=self.background_color)
 
         # creating and placing widgets within the boardkey frame
         self.create_widgets()
         self.place_widgets()
         # placing the boardkey below the scoreboard
-        self.pack(padx=10, pady=10, fill='both')
+        self.pack(padx=10, pady=(0, 10), fill='both', expand=True)
     
     def create_widgets(self):
         """
         Creates the widgets for the inside of this frame
-        """
+        """       
+        two_rounds_until_starvation_color = self.parent.parent.settings.two_rounds_until_starvation_color
+        predator_outline = self.parent.parent.settings.predator_outline_color
+        prey_color = self.parent.parent.settings.prey_background_color
+        prey_outline = self.parent.parent.settings.prey_outline_color
+
         self.boardkey_label = ttk.Label(self, text='Board Key', font=("Arial", 29, "underline"),
                                      background=self.background_color, anchor='center')
         
+        # creating predator pawn visual
         self.predator_pawn_label = ttk.Label(self, text='Predator Pawn:', font=("Arial", 16, "bold"),
                                              background=self.background_color)
         
-        self.predator_level_description = ttk.Label(self, text='6: Visual Acuity Level')
-        self.predator_birth_round_description = ttk.Label(self, text='1: Birth Round')
-        self.predator_color_description = ttk.Label(self, text='Color: Hunger Level')
+        self.predator_pawn_object = tk.Frame(self, bd=0, relief='solid', background=two_rounds_until_starvation_color,
+                                             highlightbackground=predator_outline, highlightthickness=3,
+                                             width=60, height=60)
         
-
+        self.predator_level_label = ttk.Label(self.predator_pawn_object, font=('Arial', 15, 'bold'),
+                                     text='6', background=two_rounds_until_starvation_color, anchor='center')
+        self.predator_birth_label = ttk.Label(self.predator_pawn_object, font=('Arial', 11, 'bold'),
+                                     text='1', background=two_rounds_until_starvation_color)
+        
+        # adding description for predator visual
+        self.predator_level_description = ttk.Label(self, text='6: Visual Acuity Level', font=("Arial", 8, 'bold'),
+                                                    background=self.background_color)
+        self.predator_birth_round_description = ttk.Label(self, text='1: Birth Round', font=("Arial", 8, 'bold'),
+                                                          background=self.background_color)
+        self.all_predator_colors_description = ttk.Label(self, text='Hunger Level (rounds until starvation):\n\n      Red = 1, Orange = 2, Yellow = 3+',
+                                                    font=("Arial", 7, 'bold'), background=self.background_color)
+        
+        # creating prey pawn visual
         self.prey_pawn_label = ttk.Label(self, text='Prey Pawn:', font=("Arial", 16, "bold"),
                                              background=self.background_color)
         
-    
+        self.prey_pawn_object = tk.Canvas(self, background=self.background_color,
+                                          width=65, height=65, highlightthickness=0)
+
+        # must place prey object ahead of time to find the frame length
+        self.prey_pawn_object.place(relx=0.03, rely=0.53, anchor='w')
+        # updates and calculates size of the frame
+        self.prey_pawn_object.update_idletasks()
+        width, height = self.prey_pawn_object.winfo_width()-3, self.prey_pawn_object.winfo_height()-3
+        x0, y0 = 3, 3  # top left coordinates of bounding rectangle
+        x1, y1 = width, height  # bottom right coordinates of bounding rectangle
+        self.prey_pawn_object.create_oval(x0, y0, x1, y1, fill=prey_color, outline=prey_outline, width=3)
+
+        self.prey_level_label = ttk.Label(self.prey_pawn_object, font=('Arial', 15, 'bold'),
+                                          text='4', background=prey_color, anchor='center')
+        self.prey_birth_label = ttk.Label(self.prey_pawn_object, font=('Arial', 11, 'bold'),
+                                          text='2', background=prey_color)
+        
+        # adding description for prey visual
+        self.prey_level_description = ttk.Label(self, text='4: Camoflauge Level', font=("Arial", 8, 'bold'),
+                                                background=self.background_color)
+        self.prey_birth_round_description = ttk.Label(self, text='2: Birth Round', font=("Arial", 8, 'bold'),
+                                                      background=self.background_color)
+        self.prey_color_description = ttk.Label(self, text='(color has no significance)',
+                                                font=("Arial", 8, 'bold'), background=self.background_color)
+
+        # adding a section for square result symbols
+        self.result_symbols_label = ttk.Label(self, text='Result Symbols:', font=("Arial", 16, "bold"),
+                                             background=self.background_color)
+        
+
     def place_widgets(self):
         """
         Places the widgets inside of this frame
         """
-        # setting the grid
-        self.columnconfigure((0, 1), weight=1)
-        self.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=1)
         # setting widgets
-        self.boardkey_label.grid(column=0, row=0, columnspan=2, padx=5, pady=10)
+        self.boardkey_label.place(relx=0.5, rely=0.02, anchor='n')
 
-        self.predator_pawn_label.grid(column=0, row=1, columnspan=2, padx=12, sticky='w')
+        self.predator_pawn_label.place(relx=0.05, rely=0.15, anchor='w')
+        self.predator_pawn_object.place(relx=0.05, rely=0.25, anchor='w')
+        # predator level/birth labels inside predator object
+        self.predator_birth_label.place(relx=0.15, rely=0.1)
+        self.predator_level_label.place(relx=0.55, rely=0.4)
+        # adding descriptions
+        self.predator_birth_round_description.place(relx=0.38, rely=0.21)
+        self.predator_level_description.place(relx=0.38, rely=0.27, anchor='w')
+        self.all_predator_colors_description.place(relx=0.05, rely=0.32)
 
-
-
-        self.prey_pawn_label.grid(column=0, row=2, columnspan=2, padx=12, sticky='w')
+        self.prey_pawn_label.place(relx=0.05, rely=0.43, anchor='w')
+        # prey pawn is placed ahead of time for winfo_height/width() to work
+        # prey level/birth labels inside prey object
+        self.prey_birth_label.place(relx=0.25, rely=0.18)
+        self.prey_level_label.place(relx=0.5, rely=0.4)
+        # adding descriptions
+        self.prey_birth_round_description.place(relx=0.38, rely=0.49)
+        self.prey_level_description.place(relx=0.38, rely=0.53)
+        self.prey_color_description.place(relx=0.13, rely=0.6)
+        
+        self.result_symbols_label.place(relx=0.05, rely=0.67, anchor='w')

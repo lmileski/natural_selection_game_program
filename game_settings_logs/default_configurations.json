@@ -12,8 +12,7 @@
         "three_or_more_rounds_until_starvation_color": "yellow",
 
         "predator_symbol": "square",
-        "predator_outline_color": "firebrick",
-        "predator_background_color": "medium slate blue"
+        "predator_outline_color": "firebrick"
     },
 
     "prey": {

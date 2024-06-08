@@ -43,7 +43,6 @@ class CurrentSettings:
     three_or_more_rounds_until_starvation_color: str
     predator_symbol: str
     predator_outline_color: str
-    predator_background_color: str
     # prey
     num_initial_prey: int
     prey_starting_level: int
@@ -451,12 +450,12 @@ class BoardModel:
                 random_x, random_y = (randrange(self.settings.board_length), randrange(self.settings.board_length))
             self.board[random_x][random_y].predators.append(predator)
         # randomly adding every surviving prey to board
-        for prey in self.survivors[1]:
+        for p in self.survivors[1]:
             random_x, random_y = (randrange(self.settings.board_length), randrange(self.settings.board_length))
-            # ensuring there's 3 or less predators on random square before adding
+            # ensuring there's 3 or less prey on random square before adding
             while len(self.board[random_x][random_y].prey) >= 4:
                 random_x, random_y = (randrange(self.settings.board_length), randrange(self.settings.board_length))
-            self.board[random_x][random_y].prey.append(prey)
+            self.board[random_x][random_y].prey.append(p)
 
     def clear_board(self) -> None:
         """
