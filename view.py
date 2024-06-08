@@ -21,10 +21,13 @@ View class frame heirarchy:
             - PreyView(tk.Canvas)
 """
 
+import webbrowser
+import os
 import tkinter as tk
 from tkinter import ttk
 import random
 from model import CurrentSettings, SquareModel, PredatorModel, PreyModel
+from model_helpers import open_file
 
 
 class View(tk.Tk):
@@ -565,13 +568,43 @@ class Title(tk.Frame):
                                       font=(self.parent.settings.title_font, 45, 'bold'), 
                                       background=self.parent.settings.title_background_color,
                                       foreground=self.parent.settings.title_font_color)
-    
+        
+        # adding credits/hyperlinks to title row corners
+        self.program_credit = ttk.Label(self, text='Program by Luke Mileski',
+                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        background=self.parent.settings.title_background_color)
+        
+        self.game_idea_credit = ttk.Label(self, text="Lab Game Idea by\nUSD's Dr. Searcy",
+                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        background=self.parent.settings.title_background_color)
+        
+        self.link_to_github = ttk.Label(self, text="View my Github",
+                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        background=self.parent.settings.title_background_color,
+                                        cursor='hand2', foreground='dodgerblue3')
+        self.link_to_github.bind("<Button-1>", lambda e: webbrowser.open( # making link label an actual link
+            'https://github.com/lmileski/natural_selection_board_game'))
+        
+        # adding link to online game details document
+        self.link_to_game_details = ttk.Label(self, text='View Lab Game Details',
+                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        background=self.parent.settings.title_background_color,
+                                        cursor='hand2', foreground='dodgerblue3')
+        self.link_to_game_details.bind("<Button-1>", lambda e: webbrowser.open(
+            'https://d.docs.live.net/3d8c06f048f6c577/Natural%20Selection%20Lab%20Automation.docx'))
+
     def set_widgets(self):
         """
         Sets the widgets inside of the title frame
         """
 
         self.title_header.place(relx=0.5, rely=0.5, anchor='center')
+
+        self.program_credit.place(relx=0.004, rely=0.02)
+        self.game_idea_credit.place(relx=0.004, rely=0.45)
+
+        self.link_to_github.place(relx=0.917, rely=0.02)
+        self.link_to_game_details.place(relx=0.88, rely=0.65)
 
 
 class LeftMenu(tk.Frame):
@@ -595,7 +628,7 @@ class LeftMenu(tk.Frame):
         # creating child frames - pack from top to bottom upon construction
         self.game_controls = GameControls(self)
         self.configurations = Configurations(self)
-        
+
         # creating an advisory label the default starting animals when user chooses a 1x1 board size
         self.board_size_advisory_label = ttk.Label(self, text="Default starting animal pop. exceeds a 1x1 board's pop. capacity",
                                                    font=("Arial", 11), foreground='darkorange3',

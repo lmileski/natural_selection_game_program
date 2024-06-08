@@ -8,6 +8,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.chart import BarChart, Reference
 import pandas as pd
+import subprocess
 
 def produce_diagonal_matrix(rectangular_matrix: list[list[int]]) -> list[list[int]]:
     """
@@ -252,19 +253,22 @@ def export_game_data_to_excel(round_data_filename='game_results_logs/round_log.c
 
     # Save the workbook
     wb.save(filename)
+    # open the workbook
+    open_file(filename)
+
+    # export_game_data_to_excel() 
 
 
-
-
-
-    # loading the file based off current os
+def open_file(path: str):
+    """
+    Loads a file based off the user's operating system
+    """
     os_type = system()
-    if system() == 'Windows':
-        os.startfile(filename)
-    elif os_type == 'Darwin': # macOS
-        os.system(f'open {filename}')
+    
+    if os_type == 'Windows':
+        os.startfile(path)
+    elif os_type == 'Darwin':  # macOS
+        subprocess.run(["open", path], check=True)
     elif os_type == 'Linux':
-        os.system(f'xdg-open {filename}')
+        subprocess.run(["xdg-open", path], check=True)
     # doesn't open the file for user if not windows, mac, or linux os
-
-# export_game_data_to_excel() 

@@ -198,6 +198,12 @@ class WidgetCommands:
 
         self.configurations_frame.custom_animals_checkbox_value.set(0)
         self.customize_starting_animals_checkbox_command()
+
+        # removing advisory label and lock on animal checkbox if board was 1x1
+        if self.configurations_frame.custom_animals_checkbutton.cget('state') == 'disabled':
+            self.configurations_frame.custom_animals_checkbutton.configure(state='normal')
+        # removing advisory label
+        self.view.left_menu_frame.board_size_advisory_label.pack_forget()
     
     def customize_board_checkbox_command(self) -> None:
         """
