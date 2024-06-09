@@ -79,7 +79,7 @@ class CurrentSettings:
     pause_between_rounds: str
     delay_between_rounds: int
     random_pawn_placement_time: int
-    delay_between_countdown_labels: int
+    delay_between_board_labels: int
     delay_between_square_results_labels: int
     countdown_background_color: str
 
@@ -363,14 +363,17 @@ class BoardModel:
     Handles the logic/data for conducting the game's rounds
     """
 
+    current_round: int
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
     board: list[list['SquareModel']]
+
 
     def __init__(self, settings: 'CurrentSettings'):
         """
         Initializing settings, starting pieces, squares, and the board
         """
+        self.current_round = 1
         self.settings = settings
         self.survivors = ([], [])
         self.board = [[]]

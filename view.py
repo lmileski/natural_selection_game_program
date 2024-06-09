@@ -73,7 +73,7 @@ class BoardView(tk.Frame):
         # drawing the board (without animals)
         self.draw_board()
         # creating countdown labels from 10-1 then hiding them to be displayed later
-        self.create_countdown_labels()
+        self.create_board_labels()
         # placing itself in the window
         self.place(relx=0.3, rely=0.1, relwidth=0.56, relheight=0.9)
 
@@ -225,24 +225,41 @@ class BoardView(tk.Frame):
         for square_view in self.board_visuals_1d:
             square_view.erase_animals()
     
-    def create_countdown_labels(self):
+    def create_board_labels(self):
         """
         Creates countdown labels from 1-10 and 'GO!' to display at start of game
         Creates label for the round to display at the start of every round
-        to the user in the center of the board before the round begins
+        Creates labels for scattering and collecting animal pieces
+        Creates labels for displaying the round winner
+
+        All labels are placed in the center of the board in large font
+
         Transparent label backgrounds unfortunately don't exist in tkinter :(
         """
         background_color = self.parent.settings.countdown_background_color
         for i in range(1, 11):
-            new_label = ttk.Label(self, text=i, background=background_color, font=("Arial", 45, 'bold'), anchor='center')
+            new_label = ttk.Label(self, text=i, background=background_color, font=("Arial", 75, 'bold'), anchor='center')
             setattr(self, f'countdown_label_{i}', new_label)
             # will be gridded when game starts
         
         self.countdown_label_go = ttk.Label(self, text='GO!', background=background_color, # completely transparent bg color
-                                            font=("Arial", 45, 'bold'), anchor='center')
+                                            font=("Arial", 75, 'bold'), anchor='center')
         
         self.round_label = ttk.Label(self, text='Round 1', background=background_color,
-                                     font=("Arial", 30, 'bold'), anchor='center')
+                                     font=("Arial", 60, 'bold'), anchor='center')
+        
+        self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
+                                             font=("Arial", 50, 'bold'), anchor='center')
+        
+        self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
+                                                font=("Arial", 50, 'bold'), anchor='center')
+        
+        self.predator_win_label = ttk.Label(self, text='Predators\n   Win!', background=background_color,
+                                            font=("Arial", 50, 'bold'), anchor='center')
+        self.prey_win_label = ttk.Label(self, text="Prey\n Win!", background=background_color,
+                                        font=("Arial", 50, 'bold'), anchor='center')
+        self.tie_label = ttk.Label(self, text="Tie!", background=background_color,
+                                   font=("Arial", 50, 'bold'), anchor='center')
 
     def display_game_countdown(self, num_to_display: int):
         """
@@ -272,30 +289,79 @@ class BoardView(tk.Frame):
             # adding delay then hiding go label
             self.after(1250, lambda: self.countdown_label_go.grid_forget())
 
-    def display_round_countdown(self, round_to_display: int, call_num=0):
+    def display_round_and_scattering_pawns_labels(self, round_num: int, call_num=0):
         """
-        Draws a round number label on the board and then 'GO!'
-        To be called at the start of every round if the user does
-        not have autofinish game on
+        Displays the round number in the center of the board
+        After the delay between board labels, on the second call, (call_num = 0 or 1)
+        the scattering pawns label is displayed
+
+        Depending on user's autofinish configuration there will either be an automatic
+        delay or wait for call_num=1 upon the start round button being clicked
         """
         board_length = self.parent.settings.board_length
+        delay = self.parent.settings.delay_between_board_labels
         if call_num == 0:
+            pause_status = self.parent.settings.pause_between_rounds
             # placing round label
-            self.round_label.configure(text=f'Round {round_to_display}')
+            self.round_label.configure(text=f'Round {round_num}')
             self.round_label.grid(column=0, row=0,
                                   columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay
-            self.after(1000, self.display_round_countdown, round_to_display, 1)
-        # second call for displaying GO!
+            if pause_status == 'off': # if no pause, use delay
+                self.after(delay, self.display_round_and_scattering_pawns_labels, round_num, 1)
+            # function will be called with call_num=1 upon user clicking start round button if pause is turned on
+
+        # second call for displaying scattering pawns
         elif call_num == 1:
             # forgetting round label
             self.round_label.grid_forget()
-            # adding GO! label
-            self.countdown_label_go.grid(column=0, row=0,
+            # adding Scattering Pawns label
+            self.scattering_pawns_label.grid(column=0, row=0,
                                          columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay then forgetting the GO! label
-            self.after(1250, lambda: self.countdown_label_go.grid_forget())
+            self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
 
+    def display_winner_and_collecting_pawns_labels(self, winner: str, call_num: int):
+        """
+        Displays the winner of the round in the center of the board
+        After winner is displayed, the collecting pawns label is displayed
+
+        Parameters:
+            - winner (str): the winner of the game - either
+                - 'predators' or
+                - 'prey' or
+                - 'tie'
+            - call_num (int): what labels to hide/forget (0 or 1)
+        """
+        board_length = self.parent.settings.board_length
+        delay = self.parent.settings.delay_between_board_labels
+
+        if call_num == 0:
+            if winner == 'predators':
+                self.predator_win_label.grid(column=0, row=0,
+                                            columnspan=board_length, rowspan=board_length, sticky='nsew')
+            elif winner == 'prey':
+                self.prey_win_label.grid(column=0, row=0,
+                                        columnspan=board_length, rowspan=board_length, sticky='nsew')
+            elif winner == 'tie':
+                self.tie_label.grid(column=0, row=0,
+                                    columnspan=board_length, rowspan=board_length, sticky='nsew')
+            else:
+                raise ValueError("winner argument may only be 'predators', 'prey', or 'tie'")
+            self.after(delay, self.display_winner_and_collecting_pawns_labels, winner, 1)
+
+        elif call_num == 1:
+            if winner == 'predators':
+                self.predator_win_label.grid_forget()
+            elif winner == 'prey':
+                self.prey_win_label.grid_forget()
+            elif winner == 'tie':
+                self.tie_label.grid_forget()
+
+            self.collecting_pawns_label.grid(column=0, row=0,
+                                             columnspan=board_length, rowspan=board_length, sticky='nsew')
+            self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
+        
 
 class SquareView(tk.Frame):
     """
@@ -1213,6 +1279,50 @@ class BoardKey(tk.Frame):
         self.result_symbols_label = ttk.Label(self, text='Result Symbols:', font=("Arial", 16, "bold"),
                                              background=self.background_color)
         
+        # predators win symbol
+        self.predator_win_canvas = tk.Canvas(self, background='red', highlightthickness=0, width=40, height=40)
+        # prey win symbol
+        self.prey_win_canvas = tk.Canvas(self, background='green', highlightthickness=0, width=40, height=40)
+        # tie symbol
+        self.tie_canvas = tk.Canvas(self, background='gray', highlightthickness=0, width=40, height=40)
+        # placing canvases ahead of time to be able to calculate their length
+        self.predator_win_canvas.place(relx=0.07, rely=0.71)
+        self.prey_win_canvas.place(relx=0.07, rely=0.795)
+        self.tie_canvas.place(relx=0.07, rely=0.88)
+        # updates and calculates size of the frame - all symbol keys have the same height and width
+        self.predator_win_canvas.update_idletasks()
+        frame_length = self.predator_win_canvas.winfo_width()
+        line_symbol_padding = frame_length*0.2
+
+        # placing lines for the symbols
+        self.predator_win_canvas.create_line(line_symbol_padding, frame_length-line_symbol_padding,
+                                        frame_length-line_symbol_padding, line_symbol_padding, fill='#800000',
+                                        width=5)
+        self.predator_win_canvas.create_line(line_symbol_padding, line_symbol_padding,
+                                        frame_length-line_symbol_padding, frame_length-line_symbol_padding, fill='#800000',
+                                        width=5)
+        
+        self.prey_win_canvas.create_line(line_symbol_padding, frame_length/2,
+                                    frame_length-line_symbol_padding, frame_length/2, fill='#003300',
+                                    width=5)
+        self.prey_win_canvas.create_line(frame_length/2, line_symbol_padding, frame_length/2,
+                                    frame_length-line_symbol_padding, fill='#003300',
+                                    width=5)
+        
+        self.tie_canvas.create_line(line_symbol_padding, frame_length/2,
+                                frame_length-line_symbol_padding, frame_length/2, fill='gray22',
+                                width=5)
+        
+        # adding descriptions for the symbols
+        self.predator_win_canvas_description = ttk.Label(self, text=':  Predators Win', font=("Arial", 12, 'bold'),
+                                                         background=self.background_color)
+        self.prey_win_canvas_description = ttk.Label(self, text=':  Prey Win', font=("Arial", 12, 'bold'),
+                                                     background=self.background_color)
+        self.tie_canvas_description = ttk.Label(self, text=': Tie', font=("Arial", 12, 'bold'),
+                                                background=self.background_color)
+        self.winner_description = ttk.Label(self, text='  winner is determined by the trophic\nteam with the highest net pop. growth',
+                                            font=('Arial', 7, 'bold'), background=self.background_color)
+        
 
     def place_widgets(self):
         """
@@ -1242,3 +1352,10 @@ class BoardKey(tk.Frame):
         self.prey_color_description.place(relx=0.13, rely=0.6)
         
         self.result_symbols_label.place(relx=0.05, rely=0.67, anchor='w')
+        # canvases placed ahead of time for frame lengths to be calculated
+
+        # placing winner symbol descriptions
+        self.predator_win_canvas_description.place(relx=0.3, rely=0.72)
+        self.prey_win_canvas_description.place(relx=0.3, rely=0.805)
+        self.tie_canvas_description.place(relx=0.3, rely=0.89)
+        self.winner_description.place(relx=0.06, rely=0.95)

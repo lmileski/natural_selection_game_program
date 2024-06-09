@@ -171,14 +171,18 @@ class WidgetCommands:
         self.change_game_buttons_shown('start')
         # collecting data
         self.controller.setup_board_model()
-        # drawing animals on the board
-        self.view.board_frame.randomly_draw_all_animals()
+        # displaying the round and scattering pawns labels
+        round_num = self.model.current_round
+        self.view.board_frame.display_round_and_scattering_pawns_labels(round_num)
+        self.current_gui_time += self.settings.delay_between_board_labels * 2
+        # randomly drawing animals on the board
+        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.randomly_draw_all_animals)
         self.current_gui_time += self.settings.random_pawn_placement_time + 1500 # adding buffer
         # displaying countdown after gui has been fully updated with all animals
         self.view.board_frame.after(self.current_gui_time,
                                     self.view.board_frame.display_game_countdown, self.settings.delay_between_rounds)
         # adding to current gui time - GO label is 1250 milliseconds, 500 is the buffer
-        self.current_gui_time += self.settings.delay_between_countdown_labels * self.settings.delay_between_rounds + 1250 + 500
+        self.current_gui_time += self.settings.delay_between_board_labels * self.settings.delay_between_rounds + 1250 + 500
         # calculating the results of the round
         self.model.modify_board_survivors()
         # assigning the resultant data to the board and square view objects
@@ -480,7 +484,7 @@ class WidgetCommands:
             self.configurations_frame.custom_round_delay_scale_marker.grid_forget()
 
             # updating settings with default round delay
-            self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', 'on'))
+            self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', 'off'))
             self.settings.update_settings(('change_of_rounds', 'delay_between_rounds',
                                            self.default_settings['change_of_rounds']['delay_between_rounds']))
             # updating scale views and markers to default
