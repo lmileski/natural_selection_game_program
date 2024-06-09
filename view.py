@@ -839,9 +839,9 @@ class GameControls(tk.Frame):
         # placeholder label
         self.placeholder_label.grid(row=2, column=1, padx=10, pady=(5, 40))
         # placing number of rounds scale
-        self.number_of_rounds_scale_label.grid(row=3, column=0, sticky='w', columnspan=3, padx=(30, 0), pady=10)
-        self.number_of_rounds_scale.grid(row=3, column=2, sticky='e', padx=(0, 20))
-        self.number_of_rounds_scale_marker.grid(row=3, column=0, columnspan=3, sticky='e', padx=(0, 180))
+        self.number_of_rounds_scale_label.grid(row=3, column=0, sticky='w', columnspan=3, padx=(27, 0), pady=10)
+        self.number_of_rounds_scale.grid(row=3, column=2, sticky='e', padx=(0, 25))
+        self.number_of_rounds_scale_marker.grid(row=3, column=0, columnspan=3, sticky='e', padx=(0, 185))
         # remembering the grid placement of buttons to show/hide them when user starts/ends game
         self.start_game_button_grid_info = self.start_game_button.grid_info()
         self.reset_game_button_grid_info = self.reset_game_button.grid_info()
@@ -976,13 +976,13 @@ class Configurations(tk.Frame):
         # placing labels and scales for Customize Board options
         self.custom_board_checkbutton.grid(row=1, column=0, sticky='w', columnspan=2, padx=5, pady=(8, 5))
 
-        self.restore_default_settings_button.grid(row=1, column=2, sticky='ne', padx=(0, 15), pady=(15, 0), rowspan=4)
+        self.restore_default_settings_button.grid(row=1, column=2, sticky='ne', padx=(0, 23), pady=(15, 0), rowspan=4)
 
         self.custom_board_size_label.grid(row=2, column=0, sticky='w', padx=55, columnspan=2)
         self.custom_board_size_label_grid_info = self.custom_board_size_label.grid_info()
         self.custom_board_size_label.grid_forget()
 
-        self.custom_board_size_box.grid(row=2, column=1, sticky='e', padx=15, pady=5)
+        self.custom_board_size_box.grid(row=2, column=0, sticky='w', padx=(150, 0), pady=5, columnspan=3)
         self.custom_board_size_box_grid_info = self.custom_board_size_box.grid_info()
         self.custom_board_size_box.grid_forget()
 
@@ -990,21 +990,21 @@ class Configurations(tk.Frame):
         self.custom_checker_color_label_grid_info = self.custom_checker_color_label.grid_info()
         self.custom_checker_color_label.grid_forget()
 
-        self.custom_checker_color_box.grid(row=3, column=1, sticky='e', padx=15, pady=5)
+        self.custom_checker_color_box.grid(row=3, column=0, sticky='w', padx=(150, 0), pady=5, columnspan=3)
         self.custom_checker_color_box_grid_info = self.custom_checker_color_box.grid_info()
         self.custom_checker_color_box.grid_forget()
 
         # placing labels and scales for the custom round delay options
         self.automatic_round_start_checkbutton.grid(row=4, sticky='w', padx=5, pady=5, columnspan=3)
-        self.round_delay_label.grid(row=5, column=0, sticky='e', padx=37, columnspan=2)
+        self.round_delay_label.grid(row=5, column=0, sticky='w', padx=45, columnspan=3)
         self.round_delay_label_grid_info = self.round_delay_label.grid_info()
         self.round_delay_label.grid_forget()
 
-        self.custom_round_delay_scale.grid(row=5, column=1, sticky='e', padx=25, pady=10, columnspan=4)
+        self.custom_round_delay_scale.grid(row=5, column=1, sticky='e', padx=25, pady=10, columnspan=3)
         self.custom_round_delay_scale_grid_info = self.custom_round_delay_scale.grid_info()
         self.custom_round_delay_scale.grid_forget()
 
-        self.custom_round_delay_scale_marker.grid(row=5, column=1, sticky='e')
+        self.custom_round_delay_scale_marker.grid(row=5, column=0, sticky='e', columnspan=3, padx=(0, 185))
         self.custom_round_delay_scale_marker_grid_info = self.custom_round_delay_scale_marker.grid_info()
         self.custom_round_delay_scale_marker.grid_forget()
 
@@ -1015,40 +1015,40 @@ class Configurations(tk.Frame):
         self.custom_predator_label_grid_info = self.custom_predator_label.grid_info()
         self.custom_predator_label.grid_forget()
 
-        self.custom_predator_population_scale_label.grid(row=8, column=0, sticky='e', padx=37, columnspan=2)
+        self.custom_predator_population_scale_label.grid(row=8, column=0, sticky='e', padx=34, columnspan=2)
         self.custom_predator_population_scale_label_grid_info = self.custom_predator_population_scale_label.grid_info()
         self.custom_predator_population_scale_label.grid_forget()
 
-        self.custom_predator_population_scale.grid(row=8, column=2, sticky='w', padx=10, pady=5)
+        self.custom_predator_population_scale.grid(row=8, column=1, sticky='e', padx=25, pady=5, columnspan=3)
         self.custom_predator_population_scale_grid_info = self.custom_predator_population_scale.grid_info()
         self.custom_predator_population_scale.grid_forget()
 
-        self.predator_population_scale_marker.grid(row=8, column=1, sticky='e')
+        self.predator_population_scale_marker.grid(row=8, column=0, sticky='e', columnspan=3, padx=(0, 185))
         self.predator_population_scale_marker_grid_info = self.predator_population_scale_marker.grid_info()
         self.predator_population_scale_marker.grid_forget()
 
 
-        self.custom_predator_level_scale_label.grid(row=9, column=0, sticky='e', padx=37, columnspan=2)
+        self.custom_predator_level_scale_label.grid(row=9, column=0, sticky='e', padx=34, columnspan=2)
         self.custom_predator_level_scale_label_grid_info = self.custom_predator_level_scale_label.grid_info()
         self.custom_predator_level_scale_label.grid_forget()
 
-        self.custom_predator_level_scale.grid(row=9, column=2, sticky='w', padx=10, pady=5)
+        self.custom_predator_level_scale.grid(row=9, column=1, sticky='e', padx=25, pady=5, columnspan=3)
         self.custom_predator_level_scale_grid_info = self.custom_predator_level_scale.grid_info()
         self.custom_predator_level_scale.grid_forget()
 
-        self.predator_level_scale_marker.grid(row=9, column=1, sticky='e')
+        self.predator_level_scale_marker.grid(row=9, column=0, sticky='e', columnspan=3, padx=(0, 185))
         self.predator_level_scale_marker_grid_info = self.predator_level_scale_marker.grid_info()
         self.predator_level_scale_marker.grid_forget()
 
-        self.custom_predator_starvation_scale_label.grid(row=10, column=0, sticky='e', padx=37, columnspan=2)
+        self.custom_predator_starvation_scale_label.grid(row=10, column=0, sticky='e', padx=34, columnspan=2)
         self.custom_predator_starvation_scale_label_grid_info = self.custom_predator_starvation_scale_label.grid_info()
         self.custom_predator_starvation_scale_label.grid_forget()
 
-        self.custom_predator_starvation_scale.grid(row=10, column=2, sticky='w', padx=10, pady=5)
+        self.custom_predator_starvation_scale.grid(row=10, column=1, sticky='e', padx=25, pady=5, columnspan=3)
         self.custom_predator_starvation_scale_grid_info = self.custom_predator_starvation_scale.grid_info()
         self.custom_predator_starvation_scale.grid_forget()
 
-        self.starvation_scale_marker.grid(row=10, column=1, sticky='e')
+        self.starvation_scale_marker.grid(row=10, column=0, sticky='e', columnspan=3, padx=(0, 185))
         self.starvation_scale_marker_grid_info = self.starvation_scale_marker.grid_info()
         self.starvation_scale_marker.grid_forget()
 
@@ -1056,27 +1056,27 @@ class Configurations(tk.Frame):
         self.custom_prey_label_grid_info = self.custom_prey_label.grid_info()
         self.custom_prey_label.grid_forget()
 
-        self.custom_prey_population_scale_label.grid(row=12, column=0, sticky='e', padx=37, columnspan=2)
+        self.custom_prey_population_scale_label.grid(row=12, column=0, sticky='e', padx=34, columnspan=2)
         self.custom_prey_population_scale_label_grid_info = self.custom_prey_population_scale_label.grid_info()
         self.custom_prey_population_scale_label.grid_forget()
 
-        self.custom_prey_population_scale.grid(row=12, column=2, sticky='w', padx=10, pady=5)
+        self.custom_prey_population_scale.grid(row=12, column=1, sticky='e', padx=25, pady=5, columnspan=3)
         self.custom_prey_population_scale_grid_info = self.custom_prey_population_scale.grid_info()
         self.custom_prey_population_scale.grid_forget()
 
-        self.prey_population_scale_marker.grid(row=12, column=1, sticky='e')
+        self.prey_population_scale_marker.grid(row=12, column=0, sticky='e', columnspan=3, padx=(0, 185))
         self.prey_population_scale_marker_grid_info = self.prey_population_scale_marker.grid_info()
         self.prey_population_scale_marker.grid_forget()
 
-        self.custom_prey_level_scale_label.grid(row=13, column=0, sticky='e', padx=37, columnspan=2)
+        self.custom_prey_level_scale_label.grid(row=13, column=0, sticky='e', padx=34, pady=(5, 15), columnspan=2)
         self.custom_prey_level_scale_label_grid_info = self.custom_prey_level_scale_label.grid_info()
         self.custom_prey_level_scale_label.grid_forget()
 
-        self.custom_prey_level_scale.grid(row=13, column=2, sticky='w', padx=10, pady=10)
+        self.custom_prey_level_scale.grid(row=13, column=1, sticky='e', padx=25, pady=(5, 15), columnspan=3)
         self.custom_prey_level_scale_grid_info = self.custom_prey_level_scale.grid_info()
         self.custom_prey_level_scale.grid_forget()
 
-        self.prey_level_scale_marker.grid(row=13, column=1, sticky='e')
+        self.prey_level_scale_marker.grid(row=13, column=0, sticky='e', columnspan=3, padx=(0, 185), pady=(5, 15))
         self.prey_level_scale_marker_grid_info = self.prey_level_scale_marker.grid_info()
         self.prey_level_scale_marker.grid_forget()
 
