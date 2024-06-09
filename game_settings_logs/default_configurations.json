@@ -56,7 +56,7 @@
     "board": {
         "customized_starting_animals": "off",
 
-        "board_length": 6,
+        "board_length": 5,
         "min_board_length": 1,
         "max_board_length": 8,
 
@@ -68,8 +68,9 @@
         "num_rounds": 5,
         "pause_between_rounds": "on",
         "delay_between_rounds": 3,
-        "delay_between_random_pawn_placement": 5,
-        "delay_between_countdown_labels": 1000,
-        "delay_between_square_results_labels": 500
+        "random_pawn_placement_time": 1000,
+        "delay_between_countdown_labels": 800,
+        "delay_between_square_results_labels": 500,
+        "countdown_background_color": "MediumPurple3"
     }
 }

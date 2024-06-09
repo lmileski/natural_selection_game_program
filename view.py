@@ -72,6 +72,8 @@ class BoardView(tk.Frame):
         super().__init__(parent, bd=3, relief='solid')
         # drawing the board (without animals)
         self.draw_board()
+        # creating countdown labels from 10-1 then hiding them to be displayed later
+        self.create_countdown_labels()
         # placing itself in the window
         self.place(relx=0.3, rely=0.1, relwidth=0.56, relheight=0.9)
 
@@ -132,7 +134,10 @@ class BoardView(tk.Frame):
         First erases all existing animal pieces from every square 
         then draws all new animal pieces on the board randomly
         """
-        self.delay_between_pawn_placement = self.parent.settings.delay_between_random_pawn_placement
+        # finding the delay between each pawns placement
+        random_pawn_placement_time = self.parent.settings.random_pawn_placement_time
+        total_population = self.parent.settings.num_initial_predators + self.parent.settings.num_initial_prey
+        self.delay_between_pawns = random_pawn_placement_time//total_population
         # grabbing a list of all animal pawns
         self.all_animal_pawns: list['PredatorView | PreyView'] = [] # type: ignore
         for square_view in self.board_visuals_1d:
@@ -152,7 +157,7 @@ class BoardView(tk.Frame):
             random_pawn.draw_piece()
             self.all_animal_pawns.remove(random_pawn)
             # adding delay to placement
-            self.after(int(self.delay_between_pawn_placement), self.place_pawn)
+            self.after(self.delay_between_pawns, self.place_pawn)
     
     def diagonal_matrix_draw_all_results(self):
         """
@@ -164,30 +169,40 @@ class BoardView(tk.Frame):
         self.num_diagonal_sections = len(self.board_visuals_diagonal_matrix)
         # keeping track of previous symbols displayed to forget them after the delay between square results
         self.previous_square_winner_symbols = []
-        # drawing the feature
-        self.draw_section_results(0)
+        # drawing
+        self.draw_section_results()
 
-    def draw_section_results(self, index: int):
+    def draw_section_results(self, index: int = 0):
         """
         Draws the result symbols for a diagonal section of the maze
+        (Draws either an 'X' or '+' on all board tiles from top left to bottom right)
         Waits delay_between_square_results_labels until the next call of itself
         """
         if index < self.num_diagonal_sections:
             # making last diagonal section square result symbols disappear/destroy
             for previous_square_winner_symbol in self.previous_square_winner_symbols:
                 previous_square_winner_symbol.destroy() # removes symbol from gui
-                del previous_square_winner_symbol # removes symbol from list
-
-            # displaying current diagonal sections square results
+                
+            # displaying current diagonal sections square results and new animals
             for square_view in self.board_visuals_diagonal_matrix[index]:
+                # (model has been updated by controller at this point)
+                # erasing old animals
+                square_view.erase_animals()
+                # creating new animal views
+                square_view.create_animals()
+                # drawing the new animal views
+                square_view.draw_animals()
+                # drawing result label
                 square_view.display_square_winner()
                 self.previous_square_winner_symbols.append(square_view.square_winner_canvas)
 
             # adding delay to square diagonal sections being displayed
-            self.after(int(self.result_delay), self.draw_section_results, index+1)
+            self.after(self.result_delay, self.draw_section_results, index+1)
         else:
             # forgetting any square symbols left (bottom right square)
-            self.previous_square_winner_symbols[0].destroy()
+            board_length = self.parent.settings.board_length
+            last_square_i = board_length ** 2 - 1
+            self.previous_square_winner_symbols[last_square_i].destroy()
 
     def produce_diagonal_matrix(self):
         """
@@ -209,23 +224,77 @@ class BoardView(tk.Frame):
         """
         for square_view in self.board_visuals_1d:
             square_view.erase_animals()
-
-    def display_all_tile_results(self):
-        """
-        Draws either an 'X' or '+' on all board tiles from top left to bottom right
-        """
     
-    def display_round_countdown(self):
+    def create_countdown_labels(self):
+        """
+        Creates countdown labels from 1-10 and 'GO!' to display at start of game
+        Creates label for the round to display at the start of every round
+        to the user in the center of the board before the round begins
+        Transparent label backgrounds unfortunately don't exist in tkinter :(
+        """
+        background_color = self.parent.settings.countdown_background_color
+        for i in range(1, 11):
+            new_label = ttk.Label(self, text=i, background=background_color, font=("Arial", 45, 'bold'), anchor='center')
+            setattr(self, f'countdown_label_{i}', new_label)
+            # will be gridded when game starts
+        
+        self.countdown_label_go = ttk.Label(self, text='GO!', background=background_color, # completely transparent bg color
+                                            font=("Arial", 45, 'bold'), anchor='center')
+        
+        self.round_label = ttk.Label(self, text='Round 1', background=background_color,
+                                     font=("Arial", 30, 'bold'), anchor='center')
+
+    def display_game_countdown(self, num_to_display: int):
         """
         Draws a large number countdown center of the board
         The duration of the countdown can be customized (delay) and found in the settings
-        Example countdown: 3, 2, 1, GO! (with each one fading away)
+        Example countdown: 3, 2, 1, GO!
+        To be called several times with the num_to_display being the current countdown label's int
         """
-    
-    def display_tile_results(self):
+        board_length = self.parent.settings.board_length
+        # forgetting the last countdown number if it exists (10 is max)
+        last_countdown_label: tk.Label | None = getattr(self, f'countdown_label_{num_to_display+1}', None)
+        if last_countdown_label:
+            last_countdown_label.grid_forget()
+
+        # for all numbers from round_delay -> 1
+        if num_to_display > 0:
+            # displaying next countdown number
+            countdown_label: tk.Label = getattr(self, f'countdown_label_{num_to_display}')
+            countdown_label.grid(column=0, row=0, columnspan=board_length, rowspan=board_length, sticky='nsew')
+            # displaying the next countdown number after a half-second delay
+            self.after(800, self.display_game_countdown, num_to_display-1)
+
+        # for displaying GO!
+        else:
+            self.countdown_label_go.grid(column=0, row=0,
+                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
+            # adding delay then hiding go label
+            self.after(1250, lambda: self.countdown_label_go.grid_forget())
+
+    def display_round_countdown(self, round_to_display: int, call_num=0):
         """
-        Draws either an 'X' or '+' on its board tile
+        Draws a round number label on the board and then 'GO!'
+        To be called at the start of every round if the user does
+        not have autofinish game on
         """
+        board_length = self.parent.settings.board_length
+        if call_num == 0:
+            # placing round label
+            self.round_label.configure(text=f'Round {round_to_display}')
+            self.round_label.grid(column=0, row=0,
+                                  columnspan=board_length, rowspan=board_length, sticky='nsew')
+            # adding delay
+            self.after(1000, self.display_round_countdown, round_to_display, 1)
+        # second call for displaying GO!
+        elif call_num == 1:
+            # forgetting round label
+            self.round_label.grid_forget()
+            # adding GO! label
+            self.countdown_label_go.grid(column=0, row=0,
+                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
+            # adding delay then forgetting the GO! label
+            self.after(1250, lambda: self.countdown_label_go.grid_forget())
 
 
 class SquareView(tk.Frame):
@@ -354,7 +423,8 @@ class SquareView(tk.Frame):
         Removes all animal piece visuals from its respective square
         """
         for animal_pawn in self.square_animal_views:
-            animal_pawn.destroy()
+            animal_pawn.destroy() # clears from square
+        self.square_animal_views = []
 
     def display_square_winner(self):
         """
@@ -373,23 +443,28 @@ class SquareView(tk.Frame):
             self.square_winner_canvas = tk.Canvas(self, background='green', highlightthickness=0)
             # placing lines for the symbol
             self.square_winner_canvas.create_line(line_symbol_padding, frame_length/2,
-                                        frame_length-line_symbol_padding, frame_length/2, fill='dark green')
+                                        frame_length-line_symbol_padding, frame_length/2, fill='#003300',
+                                        width=10)
             self.square_winner_canvas.create_line(frame_length/2, line_symbol_padding, frame_length/2,
-                                        frame_length-line_symbol_padding, fill='dark green')
+                                        frame_length-line_symbol_padding, fill='#003300',
+                                        width=10)
         # predators win
         elif winner_int == -1:
             self.square_winner_canvas = tk.Canvas(self, background='red', highlightthickness=0)
             # placing lines for the symbol
             self.square_winner_canvas.create_line(line_symbol_padding, frame_length-line_symbol_padding,
-                                            frame_length-line_symbol_padding, line_symbol_padding, fill='dark red')
+                                            frame_length-line_symbol_padding, line_symbol_padding, fill='#800000',
+                                            width=10)
             self.square_winner_canvas.create_line(line_symbol_padding, line_symbol_padding,
-                                            frame_length-line_symbol_padding, frame_length-line_symbol_padding, fill='dark red')
+                                            frame_length-line_symbol_padding, frame_length-line_symbol_padding, fill='#800000',
+                                            width=10)
         # tie
         else:
             self.square_winner_canvas = tk.Canvas(self, background='gray', highlightthickness=0)
             # placing line for symbol
             self.square_winner_canvas.create_line(line_symbol_padding, frame_length/2,
-                                   frame_length-line_symbol_padding, frame_length/2, fill='dark gray')
+                                   frame_length-line_symbol_padding, frame_length/2, fill='gray22',
+                                   width=10)
         
         # placing the symbol
         self.square_winner_canvas.place(relwidth=1, relheight=1)
@@ -671,6 +746,8 @@ class GameControls(tk.Frame):
         self.pause_button = ttk.Button(self, text='Pause\n Game')
         self.start_round_button = ttk.Button(self, text='  Start\nRound')
         self.export_data_button = ttk.Button(self, text='    Export\nGame Data\n   to Excel')
+        # placeholder label for preventing game controls frame from rescaling when hiding buttons
+        self.placeholder_label = ttk.Label(self, text='', background=self.background_color)
         # creating a scale to the user assign a certain number of rounds for the game
         self.number_of_rounds_scale_label = ttk.Label(self, text='Number of Rounds:', background=self.background_color, font=("Arial", 16, 'bold'))
         self.number_of_rounds_scale = ttk.Scale(self, from_=1, to=30, length=150)
@@ -688,16 +765,29 @@ class GameControls(tk.Frame):
         self.title.grid(row=0, sticky='ns', columnspan=3)
         # placing game control buttons
         self.start_game_button.grid(row=1, column=0, padx=10, pady=15)
-        self.reset_game_button.grid(row=1, column=0, padx=10, pady=15)
-        self.reset_game_button.grid_forget()
-        self.autofinish_game_button.grid(row=1, column=1, padx=10, pady=15)
-        self.pause_button.grid(row=2, column=0, padx=10, pady=10)
-        self.start_round_button.grid(row=2, column=1, padx=10, pady=10)
+        self.reset_game_button.grid(row=1, column=0, padx=(30, 10), pady=15)
+        self.autofinish_game_button.grid(row=2, column=0, padx=(30, 10), pady=(5, 10))
+        self.pause_button.grid(row=1, column=1, padx=10, pady=15)
+        self.start_round_button.grid(row=2, column=1, padx=10, pady=(5, 10))
         self.export_data_button.grid(row=1, column=2, padx=15, pady=15, rowspan=2, sticky='ne')
+        # placeholder label
+        self.placeholder_label.grid(row=2, column=1, padx=10, pady=(5, 40))
         # placing number of rounds scale
         self.number_of_rounds_scale_label.grid(row=3, column=0, columnspan=2, padx=5, pady=10)
         self.number_of_rounds_scale.grid(row=3, column=2, sticky='e', padx=(5, 20))
-        self.number_of_rounds_scale_marker.grid(row=3, column=1, sticky='e')
+        self.number_of_rounds_scale_marker.grid(row=3, column=0, columnspan=3, sticky='e', padx=(0, 180))
+        # remembering the grid placement of buttons to show/hide them when user starts/ends game
+        self.start_game_button_grid_info = self.start_game_button.grid_info()
+        self.reset_game_button_grid_info = self.reset_game_button.grid_info()
+        self.autofinish_game_button_grid_info = self.autofinish_game_button.grid_info()
+        self.pause_button_grid_info = self.pause_button.grid_info()
+        self.start_round_button_grid_info = self.start_round_button.grid_info()
+        # grid forgetting any buttons that won't be initially displayed
+        self.reset_game_button.grid_forget()
+        self.autofinish_game_button.grid_forget()
+        self.pause_button.grid_forget()
+        self.start_round_button.grid_forget()
+        #self.export_data_button.grid_forget()
 
 
 class Configurations(tk.Frame):

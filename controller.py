@@ -7,6 +7,7 @@ Author: Luke Mileski (lmileski@sandiego.edu)
 """
 
 from tkinter import Event
+import time
 from model import BoardModel, CurrentSettings, SquareModel
 from view import View
 
@@ -52,6 +53,21 @@ class Controller:
         self.model.board = [[SquareModel((x, y), self.settings.rounds_until_starvation) for y in range(self.settings.board_length)] for x in range(self.settings.board_length)]
         # randomly assigning animals to the board squares
         self.model.set_board()
+        # assigning all views their data
+        self.assign_models_to_views(start_of_game=True)
+        
+    def assign_models_to_views(self, start_of_game: bool = False):
+        """
+        Assigns the board and square views their appropriate board or square model
+        Needed for updating the round's data to display changes in surviving/born animals
+        start_of_game boolean required for determining if square_view.create_animals() should be called
+
+        create_animals() square method must be called at the time the results of the round are displayed -
+        otherwise, the old animal views will be added to the square's list of animal views too early
+
+        Parameters:
+            - start_of_game (bool): True if called at the start of the game, false otherwise
+        """
         # assigning board data to the View's board
         setattr(self.view.board_frame, 'board_data', self.model.board)
         # assigning each squares model data to its respective square view
@@ -59,7 +75,8 @@ class Controller:
             for y, square_model in enumerate(column):
                 square_view = self.view.board_frame.board_visuals_2d[x][y]
                 setattr(square_view, 'square_data', square_model)
-                square_view.create_animals()
+                if start_of_game:
+                    square_view.create_animals()
 
     def set_widget_commands(self) -> None:
         """
@@ -146,9 +163,28 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Start Game button
         """
+        # need to keep track of gui update times for visual to be in appropriate order
+        self.current_gui_time = 0
+        # disabling configurations/number of rounds scale
+        self.change_configuration_widget_states('disabled')
+        # changing game control buttons shown
+        self.change_game_buttons_shown('start')
+        # collecting data
         self.controller.setup_board_model()
+        # drawing animals on the board
         self.view.board_frame.randomly_draw_all_animals()
-
+        self.current_gui_time += self.settings.random_pawn_placement_time + 1500 # adding buffer
+        # displaying countdown after gui has been fully updated with all animals
+        self.view.board_frame.after(self.current_gui_time,
+                                    self.view.board_frame.display_game_countdown, self.settings.delay_between_rounds)
+        # adding to current gui time - GO label is 1250 milliseconds, 500 is the buffer
+        self.current_gui_time += self.settings.delay_between_countdown_labels * self.settings.delay_between_rounds + 1250 + 500
+        # calculating the results of the round
+        self.model.modify_board_survivors()
+        # assigning the resultant data to the board and square view objects
+        self.controller.assign_models_to_views()
+        # displaying the rounds results
+        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.diagonal_matrix_draw_all_results)
 
 
         # erasing all previous animal pawns from board 
@@ -173,7 +209,90 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Export Game Data to Excel button
         """
+
+    def change_configuration_widget_states(self, state: str) -> None:
+        """
+        Changes the state (normal or disabled) of all the scales and checkbuttons
+        in the configurations frame and game controls frame
+        Needed to prevent the user from changing settings in the middle of a game
+
+        Parameters:
+            - state (str): the state to change the widgets to - accepts either
+                - 'normal' : activates all widgets
+                - 'disabled' : deactivates all widgets
+        """
+        if state == 'disabled':
+            self.game_controls_frame.number_of_rounds_scale.configure(state='disabled')
+
+            self.configurations_frame.restore_default_settings_button.configure(state='disabled')
+            
+            self.configurations_frame.custom_board_checkbutton.configure(state='disabled')
+            self.configurations_frame.custom_board_size_box.configure(state='disabled')
+            self.configurations_frame.custom_checker_color_box.configure(state='disabled')
+            
+            self.configurations_frame.custom_animals_checkbutton.configure(state='disabled')
+            self.configurations_frame.custom_predator_population_scale.configure(state='disabled')
+            self.configurations_frame.custom_predator_level_scale.configure(state='disabled')
+            self.configurations_frame.custom_predator_starvation_scale.configure(state='disabled')
+            self.configurations_frame.custom_prey_population_scale.configure(state='disabled')
+            self.configurations_frame.custom_prey_level_scale.configure(state='disabled')
+            
+            self.configurations_frame.automatic_round_start_checkbutton.configure(state='disabled')
+            self.configurations_frame.custom_round_delay_scale.configure(state='disabled')
+        
+        elif state == 'normal':
+            self.game_controls_frame.number_of_rounds_scale.configure(state='normal')
+
+            self.configurations_frame.restore_default_settings_button.configure(state='normal')
+            
+            self.configurations_frame.custom_board_checkbutton.configure(state='normal')
+            self.configurations_frame.custom_board_size_box.configure(state='normal')
+            self.configurations_frame.custom_checker_color_box.configure(state='normal')
+            
+            self.configurations_frame.custom_animals_checkbutton.configure(state='normal')
+            self.configurations_frame.custom_predator_population_scale.configure(state='normal')
+            self.configurations_frame.custom_predator_level_scale.configure(state='normal')
+            self.configurations_frame.custom_predator_starvation_scale.configure(state='normal')
+            self.configurations_frame.custom_prey_population_scale.configure(state='normal')
+            self.configurations_frame.custom_prey_level_scale.configure(state='normal')
+            
+            self.configurations_frame.automatic_round_start_checkbutton.configure(state='normal')
+            self.configurations_frame.custom_round_delay_scale.configure(state='normal')
+        
+        else:
+            raise ValueError("The state argument must either be 'normal' or 'disabled'")
     
+    def change_game_buttons_shown(self, button_press: str) -> None:
+        """
+        Changes what buttons are shown to the user in the game controls panel
+
+        Parameters:
+            - button_press (str): the button clicked - accepts either
+                - 'start' : hides certain buttons when the 'start game' button is pressed
+                - 'reset' : hides certain buttons when the 'reset game' button is pressed
+        """
+        if button_press == 'start':
+            self.game_controls_frame.start_game_button.grid_forget()
+
+            self.game_controls_frame.reset_game_button.grid(
+                **self.game_controls_frame.reset_game_button_grid_info)
+            self.game_controls_frame.autofinish_game_button.grid(
+                **self.game_controls_frame.autofinish_game_button_grid_info)
+            self.game_controls_frame.pause_button.grid(
+                **self.game_controls_frame.pause_button_grid_info)
+        
+        elif button_press == 'reset':
+            self.game_controls_frame.start_game_button.grid(
+                **self.game_controls_frame.start_game_button_grid_info)
+
+            self.game_controls_frame.reset_game_button.grid_forget()
+            self.game_controls_frame.autofinish_game_button.grid_forget()
+            self.game_controls_frame.pause_button.grid_forget()
+            self.game_controls_frame.start_round_button.grid_forget()
+        
+        else:
+            raise ValueError("The button_press argument must either be 'start' or 'reset'")
+
     def number_of_rounds_scale_command(self, value: str) -> None:
         """
         Handles events when the user toggles the number of rounds scale

@@ -78,9 +78,10 @@ class CurrentSettings:
     num_rounds: int
     pause_between_rounds: str
     delay_between_rounds: int
-    delay_between_random_pawn_placement: float
-    delay_between_countdown_labels: float
-    delay_between_square_results_labels: float
+    random_pawn_placement_time: int
+    delay_between_countdown_labels: int
+    delay_between_square_results_labels: int
+    countdown_background_color: str
 
     def __init__(self):
         """
