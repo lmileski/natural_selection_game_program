@@ -839,8 +839,8 @@ class GameControls(tk.Frame):
         # placeholder label
         self.placeholder_label.grid(row=2, column=1, padx=10, pady=(5, 40))
         # placing number of rounds scale
-        self.number_of_rounds_scale_label.grid(row=3, column=0, columnspan=2, padx=5, pady=10)
-        self.number_of_rounds_scale.grid(row=3, column=2, sticky='e', padx=(5, 20))
+        self.number_of_rounds_scale_label.grid(row=3, column=0, sticky='w', columnspan=3, padx=(30, 0), pady=10)
+        self.number_of_rounds_scale.grid(row=3, column=2, sticky='e', padx=(0, 20))
         self.number_of_rounds_scale_marker.grid(row=3, column=0, columnspan=3, sticky='e', padx=(0, 180))
         # remembering the grid placement of buttons to show/hide them when user starts/ends game
         self.start_game_button_grid_info = self.start_game_button.grid_info()
@@ -848,12 +848,13 @@ class GameControls(tk.Frame):
         self.autofinish_game_button_grid_info = self.autofinish_game_button.grid_info()
         self.pause_button_grid_info = self.pause_button.grid_info()
         self.start_round_button_grid_info = self.start_round_button.grid_info()
+        self.export_data_button_grid_info = self.export_data_button.grid_info()
         # grid forgetting any buttons that won't be initially displayed
         self.reset_game_button.grid_forget()
         self.autofinish_game_button.grid_forget()
         self.pause_button.grid_forget()
         self.start_round_button.grid_forget()
-        #self.export_data_button.grid_forget()
+        self.export_data_button.grid_forget()
 
 
 class Configurations(tk.Frame):
