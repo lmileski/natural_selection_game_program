@@ -17,17 +17,16 @@ class Controller:
     Intermediates between the model and view class
     """
 
-    model: BoardModel
+    model: BoardModel # attributed upon click of the 'start game' button
     view: View
     settings: CurrentSettings
 
-    def __init__(self, model: BoardModel, view: View, settings: CurrentSettings):
+    def __init__(self, view: View, settings: CurrentSettings):
         """
         Initializing the controller's settings, model, view, and
         widget commands then starting the gui application
         """
         self.settings = settings
-        self.model = model
         self.view = view
         self.set_widget_commands()
         # starting gui
@@ -137,7 +136,6 @@ class WidgetCommands:
         self.game_controls_frame = self.view.left_menu_frame.game_controls
         self.configurations_frame = self.view.left_menu_frame.configurations
         self.scoreboard_frame = self.view.right_menu_frame.scoreboard
-        self.model = self.controller.model
         self.settings = self.controller.settings
         self.default_settings = CurrentSettings.default_settings()
 
@@ -145,8 +143,9 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Start Game button
         """
-        # creating new empty model with cleared attributes
-        self.model = BoardModel(self.settings)
+        # setting up the model upon its initialization depending on the user's configurations
+        self.controller.model = BoardModel(self.settings)
+        self.model = self.controller.model
         # assigning all views their data
         self.controller.assign_models_to_views(start_of_game=True)
         # need to keep track of gui update times for visual to be in appropriate order
@@ -281,6 +280,29 @@ class WidgetCommands:
         
         else:
             raise ValueError("The button_press argument must either be 'start' or 'reset'")
+
+    def update_scoreboard(self) -> None:
+        """
+        Updates the scoreboard once the round's results have been shown
+        """
+        scoreboard_frame = self.view.right_menu_frame.scoreboard
+
+        scoreboard_frame.predator_population_marker.configure(
+            text=self.model.total_populations[0],
+        )
+        scoreboard_frame.prey_population_marker.configure(
+            text=self.model.total_populations[1]
+        )
+        scoreboard_frame.predator_level_marker.configure(
+            text=self.model.average_levels[0]
+        )
+        scoreboard_frame.prey_level_marker.configure(
+            text=self.model.average_levels[1]
+        )
+        scoreboard_frame.predator_starvation_marker.configure(
+            text=self.model.average_hunger_level
+        )
+
 
     def number_of_rounds_scale_command(self, value: str) -> None:
         """
@@ -698,4 +720,4 @@ if __name__ == "__main__":
     model = BoardModel(settings)
     view = View(settings)
     # controller creates model upon creation 
-    controller = Controller(model, view, settings)
+    controller = Controller(view, settings)

@@ -370,8 +370,9 @@ class BoardModel:
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
     board: list[list['SquareModel']]
-    average_levels: tuple[float, float]
     total_populations: tuple[int, int]
+    average_levels: tuple[float, float]
+    average_hunger_level: float
     levels_to_populations: tuple[dict[int, int], dict[int, int]]
 
 
@@ -388,6 +389,8 @@ class BoardModel:
         self.board = [[]]
         # creating starting animals - either default or customized by user
         self.survivors = self.create_animals()
+        self.previous_total_populations = (self.settings.num_initial_predators, self.settings.num_initial_prey)
+        self.previous_average_levels = 
         # 2d array of Square objects - each inner list represents a column 
         self.board = [[SquareModel((x, y), self.settings.rounds_until_starvation) for y in range(self.settings.board_length)] for x in range(self.settings.board_length)]
         # randomly assigning animals to the board squares
@@ -539,8 +542,26 @@ class BoardModel:
         # redefining self.survivors tuple with animals that survived the population_cap removal
         self.survivors = tuple(actual_survivors) # type: ignore
 
-    def calculate_average_levels(self) -> None:
+        # updating the game stats
+        self.calculate_total_populations()
+        self.calculate_average_levels()
+        self.calculate_average_hunger_level()
 
+    def calculate_total_populations(self) -> None:
+        """
+        Calculates population data of predators and prey - to be used at beginning of game and after each round.
+        Calculates length of each list in self.survivors (tuple[list['Predator'], list['Prey']])
+
+        Determined values are stored in the total_populations attribute
+            - tuple[int, int]:
+                - (0) is the predator total population
+                - (1) is the prey total population
+        """
+        predators, prey = self.survivors
+        # total populations without respect to skill levels
+        self.total_populations = len(predators), len(prey)
+    
+    def calculate_average_levels(self) -> None:
         """
         Calculates the average skill level for all predators and all prey.
         Sums all the skill levels of animals from self.survivors (tuple[list['Predator'], list['Prey']])
@@ -568,23 +589,20 @@ class BoardModel:
         
         for p in prey:
             sum_prey_levels += p.skill_level
-
         # calculating and returning average to 1 decimal place
         self.average_levels = round(sum_predators_levels/len(predators), 1), round(sum_prey_levels/len(prey), 1)
-    
-    def calculate_total_populations(self) -> None:
-        """
-        Calculates population data of predators and prey - to be used at beginning of game and after each round.
-        Calculates length of each list in self.survivors (tuple[list['Predator'], list['Prey']])
 
-        Determined values are stored in the total_populations attribute
-            - tuple[int, int]:
-                - (0) is the predator total population
-                - (1) is the prey total population
+    def calculate_average_hunger_level(self) -> None:
         """
-        predators, prey = self.survivors
-        # total populations without respect to skill levels
-        self.total_populations = len(predators), len(prey)
+        Calculates the average hunger level of all predators on the board after
+        the round has concluded
+        Assigns the value to the object's averager_hunger_level attribute
+        """
+        sum_hunger_levels = 0
+        for predator in self.survivors[0]:
+            sum_hunger_levels += predator.rounds_until_starvation
+        
+        self.average_hunger_level = round(sum_hunger_levels/len(self.survivors[0]), 2)
 
     def calculate_levels_to_populations(self) -> None:
         """
