@@ -7,7 +7,7 @@
         "min_rounds_until_starvation": 1,
         "max_rounds_until_starvation": 10,
 
-        "one_round_until_starvation_color": "red",
+        "one_round_until_starvation_color": "tomato",
         "two_rounds_until_starvation_color": "orange",
         "three_or_more_rounds_until_starvation_color": "yellow",
 
@@ -67,7 +67,7 @@
     "change_of_rounds": {
         "num_rounds": 5,
         "pause_between_rounds": "on",
-        "delay_between_rounds": 3,
+        "delay_between_rounds": 5,
         "random_pawn_placement_time": 1000,
         "delay_between_board_labels": 800,
         "delay_between_square_results_labels": 500,

@@ -574,15 +574,19 @@ class PredatorView(tk.Frame):
         # depending on board_length, choosing certain font sizes and birth round label padding
         board_length = self.parent.parent.parent.settings.board_length
 
-        level_label_font_size = 55//board_length
-        birth_label_font_size = 38//board_length
+        if board_length > 4:
+            level_label_font_size = 40//board_length
+            birth_label_font_size = 30//board_length
+
+        else:
+            level_label_font_size = 55//board_length
+            birth_label_font_size = 38//board_length
 
         level_label_padx = (0, 37//board_length)
         level_label_pady = (0, 20//board_length)
 
         birth_label_padx = (30//board_length, 0)
         birth_label_pady = (20//board_length, 0)
-
 
         self.level_label = ttk.Label(self, font=('Arial', level_label_font_size, 'bold'),
                                      text=self.level, background=self.hunger_color, anchor='center')
@@ -652,14 +656,25 @@ class PreyView(tk.Canvas):
         # depending on board_length, choosing certain font sizes and birth round label padding
         board_length = self.parent.parent.parent.settings.board_length
 
-        level_label_font_size = 55//board_length
-        birth_label_font_size = 37//board_length
+        if board_length > 4:
+            level_label_font_size = 40//board_length
+            birth_label_font_size = 30//board_length
 
-        level_label_padx = (0, 58//board_length)
-        level_label_pady = (0, 38//board_length)
+            level_label_padx = (0, 55//board_length)
+            level_label_pady = (0, 40//board_length)
 
-        birth_label_padx = (58//board_length, 0)
-        birth_label_pady = (48//board_length, 0)
+            birth_label_padx = (57//board_length, 0)
+            birth_label_pady = (51//board_length, 0)
+        else:
+            level_label_font_size = 55//board_length
+            birth_label_font_size = 38//board_length
+
+            level_label_padx = (0, 58//board_length)
+            level_label_pady = (0, 38//board_length)
+
+            birth_label_padx = (58//board_length, 0)
+            birth_label_pady = (48//board_length, 0)
+
 
         self.level_label = ttk.Label(self, text=self.level, font=('Arial', level_label_font_size, 'bold'),
                                      background=self.circle_background_color)
@@ -929,7 +944,7 @@ class Configurations(tk.Frame):
         self.custom_predator_level_scale.set(5)
         self.predator_level_scale_marker = ttk.Label(self, text='5', background=self.background_color, font=("Arial", 14, 'bold'))
 
-        self.custom_predator_starvation_scale_label = ttk.Label(self, text='Hunger:', background=self.background_color, font=("Arial", 13))
+        self.custom_predator_starvation_scale_label = ttk.Label(self, text='Satiety Level:', background=self.background_color, font=("Arial", 13))
         self.custom_predator_starvation_scale = ttk.Scale(self, from_=1, to=10, length=150)
         self.custom_predator_starvation_scale.set(2)
         self.starvation_scale_marker = ttk.Label(self, text='2', background=self.background_color, font=("Arial", 14, 'bold'))
@@ -1105,6 +1120,9 @@ class ScoreBoard(tk.Frame):
     """
 
     parent: RightMenu
+    total_populations: tuple[int, int]
+    average_levels: tuple[float, float]
+    average_hunger_level: float
 
     def __init__(self, parent: RightMenu):
         # setting parent frame for settings retrieval
@@ -1140,7 +1158,7 @@ class ScoreBoard(tk.Frame):
         self.predator_level_marker = ttk.Label(self, text='5', font=("Arial", 16, "bold"),
                                                background=self.background_color)
 
-        self.predator_starvation_label = ttk.Label(self, text="Avg. Hunger:", font=("Arial", 14),
+        self.predator_starvation_label = ttk.Label(self, text="Avg. Satiety:", font=("Arial", 14),
                                                    background=self.background_color)
         self.predator_starvation_marker = ttk.Label(self, text='2', font=("Arial", 16, "bold"),
                                                     background=self.background_color)
@@ -1171,22 +1189,65 @@ class ScoreBoard(tk.Frame):
 
         self.predator_stats_label.grid(column=0, row=1, padx=12, pady=5, sticky='w', columnspan=2)
 
-        self.predator_population_label.grid(column=0, row=2, padx=50, pady=5, sticky='w', columnspan=3)
+        self.predator_population_label.grid(column=0, row=2, padx=45, pady=5, sticky='w', columnspan=3)
         self.predator_population_marker.grid(column=1, row=2, padx=12, pady=5, sticky='e')
 
-        self.predator_level_label.grid(column=0, row=3, padx=50, pady=5, sticky='w', columnspan=3)
+        self.predator_level_label.grid(column=0, row=3, padx=45, pady=5, sticky='w', columnspan=3)
         self.predator_level_marker.grid(column=1, row=3, padx=12, pady=5, sticky='e')
 
-        self.predator_starvation_label.grid(column=0, row=4, padx=36, pady=5, sticky='w', columnspan=3)
+        self.predator_starvation_label.grid(column=0, row=4, padx=34, pady=5, sticky='w', columnspan=3)
         self.predator_starvation_marker.grid(column=1, row=4, padx=12, pady=5, sticky='e')
 
         self.prey_stats_label.grid(column=0, row=5, padx=12, pady=(18, 5), sticky='w', columnspan=2)
 
-        self.prey_population_label.grid(column=0, row=6, padx=50, pady=5, sticky='w', columnspan=3)
+        self.prey_population_label.grid(column=0, row=6, padx=45, pady=5, sticky='w', columnspan=3)
         self.prey_population_marker.grid(column=1, row=6, padx=12, pady=5, sticky='e')
 
-        self.prey_level_label.grid(column=0, row=7, padx=50, pady=5, sticky='w', columnspan=3)
+        self.prey_level_label.grid(column=0, row=7, padx=45, pady=5, sticky='w', columnspan=3)
         self.prey_level_marker.grid(column=1, row=7, padx=12, pady=5, sticky='e')
+
+    def update_scoreboard(self):
+        """
+        Updates the scoreboard once the round's results have been shown
+
+        If the score increased in comparison to the start of the round, the text is green
+        If the score decreased in comparison to the start of the round, the text is red
+        """
+
+        # finding correct colors in response to previous score
+        previous_predator_population = int(self.predator_population_marker.cget('text'))
+        previous_prey_population = int(self.prey_population_marker.cget('text'))
+        previous_predator_avg_level = float(self.predator_level_marker.cget('text'))
+        previous_prey_avg_level = float(self.prey_level_marker.cget('text'))
+        previous_avg_hunger_level = float(self.predator_starvation_marker.cget('text'))
+        # finding new scores
+        current_predator_population = int(self.total_populations[0])
+        current_prey_population = int(self.total_populations[1])
+        current_predator_avg_level = float(self.average_levels[0])
+        current_prey_avg_level = float(self.average_levels[1])
+        current_avg_hunger_level = float(self.average_hunger_level)
+        
+        # updating the labels with new scores and appropriate colors
+        # green means a higher score, red means a lower score, gray means no change
+        color = "green" if current_predator_population > previous_predator_population \
+            else "red" if current_predator_population < previous_predator_population else "gray27"
+        self.predator_population_marker.configure(text=current_predator_population, foreground=color)
+
+        color = "green" if current_prey_population > previous_prey_population \
+            else "red" if current_prey_population < previous_prey_population else "gray27"
+        self.prey_population_marker.configure(text=current_prey_population, foreground=color)
+
+        color = "green" if current_predator_avg_level > previous_predator_avg_level \
+            else "red" if current_predator_avg_level < previous_predator_avg_level else "gray27"
+        self.predator_level_marker.configure(text=current_predator_avg_level, foreground=color)
+
+        color = "green" if current_prey_avg_level > previous_prey_avg_level \
+            else "red" if current_prey_avg_level < previous_prey_avg_level else "gray27"
+        self.prey_level_marker.configure(text=current_prey_avg_level, foreground=color)
+
+        color = "green" if current_avg_hunger_level > previous_avg_hunger_level \
+            else "red" if current_avg_hunger_level < previous_avg_hunger_level else "gray27"
+        self.predator_starvation_marker.configure(text=current_avg_hunger_level, foreground=color)
 
 
 class BoardKey(tk.Frame):
@@ -1239,7 +1300,7 @@ class BoardKey(tk.Frame):
                                                     background=self.background_color)
         self.predator_birth_round_description = ttk.Label(self, text='1: Birth Round', font=("Arial", 8, 'bold'),
                                                           background=self.background_color)
-        self.all_predator_colors_description = ttk.Label(self, text='Hunger Level (rounds until starvation):\n\n      Red = 1, Orange = 2, Yellow = 3+',
+        self.all_predator_colors_description = ttk.Label(self, text='Satiety Level (rounds until starvation):\n\n    Red = 1,  Orange = 2,  Yellow = 3+',
                                                     font=("Arial", 7, 'bold'), background=self.background_color)
         
         # creating prey pawn visual
@@ -1319,7 +1380,6 @@ class BoardKey(tk.Frame):
         self.winner_description = ttk.Label(self, text='  winner is determined by the trophic\nteam with the highest net pop. growth',
                                             font=('Arial', 7, 'bold'), background=self.background_color)
         
-
     def place_widgets(self):
         """
         Places the widgets inside of this frame

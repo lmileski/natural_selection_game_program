@@ -389,8 +389,10 @@ class BoardModel:
         self.board = [[]]
         # creating starting animals - either default or customized by user
         self.survivors = self.create_animals()
-        self.previous_total_populations = (self.settings.num_initial_predators, self.settings.num_initial_prey)
-        self.previous_average_levels = 
+        # finding the starting stats
+        self.calculate_total_populations()
+        self.calculate_average_levels()
+        self.calculate_average_hunger_level()
         # 2d array of Square objects - each inner list represents a column 
         self.board = [[SquareModel((x, y), self.settings.rounds_until_starvation) for y in range(self.settings.board_length)] for x in range(self.settings.board_length)]
         # randomly assigning animals to the board squares
@@ -602,7 +604,7 @@ class BoardModel:
         for predator in self.survivors[0]:
             sum_hunger_levels += predator.rounds_until_starvation
         
-        self.average_hunger_level = round(sum_hunger_levels/len(self.survivors[0]), 2)
+        self.average_hunger_level = round(sum_hunger_levels/len(self.survivors[0]), 1)
 
     def calculate_levels_to_populations(self) -> None:
         """

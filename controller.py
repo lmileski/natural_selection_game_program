@@ -51,6 +51,10 @@ class Controller:
         """
         # assigning board data to the View's board
         setattr(self.view.board_frame, 'board_data', self.model.board)
+        # assigning stats to the scoreboard
+        setattr(self.view.right_menu_frame.scoreboard, 'total_populations', self.model.total_populations)
+        setattr(self.view.right_menu_frame.scoreboard, 'average_levels', self.model.average_levels)
+        setattr(self.view.right_menu_frame.scoreboard, 'average_hunger_level', self.model.average_hunger_level)
         # assigning each squares model data to its respective square view
         for x, column in enumerate(self.model.board):
             for y, square_model in enumerate(column):
@@ -164,14 +168,24 @@ class WidgetCommands:
         # displaying countdown after gui has been fully updated with all animals
         self.view.board_frame.after(self.current_gui_time,
                                     self.view.board_frame.display_game_countdown, self.settings.delay_between_rounds)
-        # adding to current gui time - GO label is 1250 milliseconds, 500 is the buffer
-        self.current_gui_time += self.settings.delay_between_board_labels * self.settings.delay_between_rounds + 1250 + 500
+        # adding to current gui time - GO label is 1250 milliseconds, 800 is the buffer
+        self.current_gui_time += self.settings.delay_between_board_labels * self.settings.delay_between_rounds + 1250 + 800
         # calculating the results of the round
         self.model.modify_board_survivors()
         # assigning the resultant data to the board and square view objects
         self.controller.assign_models_to_views()
-        # displaying the rounds results
+        # displaying the rounds results feature
         self.view.board_frame.after(self.current_gui_time, self.view.board_frame.diagonal_matrix_draw_all_results)
+        # adding to current gui time - multipying by the number of diagonal sections
+        self.current_gui_time += self.settings.delay_between_square_results_labels*(2*self.settings.board_length-1)
+        # updating the scoreboard
+        self.view.right_menu_frame.scoreboard.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.update_scoreboard)
+        # displaying the winner
+
+        # adding configured delay between rounds buffer - setting is 1 digit representing seconds
+        self.current_gui_time += self.settings.delay_between_rounds * 1000
+        # displaying the collecting pawns label
+        
 
 
 
@@ -280,29 +294,6 @@ class WidgetCommands:
         
         else:
             raise ValueError("The button_press argument must either be 'start' or 'reset'")
-
-    def update_scoreboard(self) -> None:
-        """
-        Updates the scoreboard once the round's results have been shown
-        """
-        scoreboard_frame = self.view.right_menu_frame.scoreboard
-
-        scoreboard_frame.predator_population_marker.configure(
-            text=self.model.total_populations[0],
-        )
-        scoreboard_frame.prey_population_marker.configure(
-            text=self.model.total_populations[1]
-        )
-        scoreboard_frame.predator_level_marker.configure(
-            text=self.model.average_levels[0]
-        )
-        scoreboard_frame.prey_level_marker.configure(
-            text=self.model.average_levels[1]
-        )
-        scoreboard_frame.predator_starvation_marker.configure(
-            text=self.model.average_hunger_level
-        )
-
 
     def number_of_rounds_scale_command(self, value: str) -> None:
         """
