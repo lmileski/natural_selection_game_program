@@ -72,8 +72,6 @@ class BoardView(tk.Frame):
         super().__init__(parent, bd=3, relief='solid')
         # drawing the board (without animals)
         self.draw_board()
-        # creating countdown labels from 10-1 then hiding them to be displayed later
-        self.create_board_labels()
         # placing itself in the window
         self.place(relx=0.3, rely=0.1, relwidth=0.56, relheight=0.9)
 
@@ -224,66 +222,41 @@ class BoardView(tk.Frame):
         """
         for square_view in self.board_visuals_1d:
             square_view.erase_animals()
-    
-    def create_board_labels(self):
-        """
-        Creates countdown labels from 1-10 and 'GO!' to display at start of game
-        Creates label for the round to display at the start of every round
-        Creates labels for scattering and collecting animal pieces
-        Creates labels for displaying the round winner
-
-        All labels are placed in the center of the board in large font
-
-        Transparent label backgrounds unfortunately don't exist in tkinter :(
-        """
-        background_color = self.parent.settings.countdown_background_color
-        for i in range(1, 11):
-            new_label = ttk.Label(self, text=i, background=background_color, font=("Arial", 75, 'bold'), anchor='center')
-            setattr(self, f'countdown_label_{i}', new_label)
-            # will be gridded when game starts
         
-        self.countdown_label_go = ttk.Label(self, text='GO!', background=background_color, # completely transparent bg color
-                                            font=("Arial", 75, 'bold'), anchor='center')
-        
-        self.round_label = ttk.Label(self, text='Round 1', background=background_color,
-                                     font=("Arial", 60, 'bold'), anchor='center')
-        
-        self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
-                                             font=("Arial", 50, 'bold'), anchor='center')
-        
-        self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
-                                                font=("Arial", 50, 'bold'), anchor='center')
-        
-        self.predator_win_label = ttk.Label(self, text='Predators\n   Win!', background=background_color,
-                                            font=("Arial", 50, 'bold'), anchor='center')
-        self.prey_win_label = ttk.Label(self, text="Prey\n Win!", background=background_color,
-                                        font=("Arial", 50, 'bold'), anchor='center')
-        self.tie_label = ttk.Label(self, text="Tie!", background=background_color,
-                                   font=("Arial", 50, 'bold'), anchor='center')
-
     def display_game_countdown(self, num_to_display: int):
         """
         Draws a large number countdown center of the board
-        The duration of the countdown can be customized (delay) and found in the settings
         Example countdown: 3, 2, 1, GO!
         To be called several times with the num_to_display being the current countdown label's int
+
+        Must create labels in same function to ensure proper level order of frames :(
+
+        Transparent label backgrounds unfortunately don't exist in tkinter :(
         """
         board_length = self.parent.settings.board_length
-        # forgetting the last countdown number if it exists (10 is max)
+        background_color = self.parent.settings.countdown_background_color
+
+        # forgetting the last countdown number displayed in last call if it exists (10 is max)
         last_countdown_label: tk.Label | None = getattr(self, f'countdown_label_{num_to_display+1}', None)
         if last_countdown_label:
             last_countdown_label.grid_forget()
 
         # for all numbers from round_delay -> 1
         if num_to_display > 0:
+            # creating number label
+            new_label = ttk.Label(self, text=num_to_display, background=background_color, font=("Arial", 75, 'bold'), anchor='center')
+            setattr(self, f'countdown_label_{num_to_display}', new_label)
             # displaying next countdown number
-            countdown_label: tk.Label = getattr(self, f'countdown_label_{num_to_display}')
-            countdown_label.grid(column=0, row=0, columnspan=board_length, rowspan=board_length, sticky='nsew')
+            self.countdown_label: tk.Label = getattr(self, f'countdown_label_{num_to_display}')
+            self.countdown_label.grid(column=0, row=0, columnspan=board_length, rowspan=board_length, sticky='nsew')
             # displaying the next countdown number after a half-second delay
             self.after(800, self.display_game_countdown, num_to_display-1)
 
         # for displaying GO!
         else:
+            # creating label
+            self.countdown_label_go = ttk.Label(self, text='GO!', background=background_color,
+                                            font=("Arial", 75, 'bold'), anchor='center')
             self.countdown_label_go.grid(column=0, row=0,
                                          columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay then hiding go label
@@ -297,11 +270,18 @@ class BoardView(tk.Frame):
 
         Depending on user's autofinish configuration there will either be an automatic
         delay or wait for call_num=1 upon the start round button being clicked
+
+        Must create labels in same function to ensure proper level order of frames
         """
         board_length = self.parent.settings.board_length
         delay = self.parent.settings.delay_between_board_labels
+        background_color = self.parent.settings.countdown_background_color
+        # placing labels at specific time intervals
         if call_num == 0:
             pause_status = self.parent.settings.pause_between_rounds
+            # creating label
+            self.round_label = ttk.Label(self, text='Round 1', background=background_color,
+                                     font=("Arial", 60, 'bold'), anchor='center')
             # placing round label
             self.round_label.configure(text=f'Round {round_num}')
             self.round_label.grid(column=0, row=0,
@@ -313,11 +293,15 @@ class BoardView(tk.Frame):
 
         # second call for displaying scattering pawns
         elif call_num == 1:
+            # creating label
+            self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
+                                             font=("Arial", 50, 'bold'), anchor='center')
             # forgetting round label
             self.round_label.grid_forget()
             # adding Scattering Pawns label
             self.scattering_pawns_label.grid(column=0, row=0,
                                          columnspan=board_length, rowspan=board_length, sticky='nsew')
+            self.lift(self.scattering_pawns_label)
             # adding delay then forgetting the GO! label
             self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
 
@@ -332,18 +316,27 @@ class BoardView(tk.Frame):
                 - 'prey' or
                 - 'tie'
             - call_num (int): what labels to hide/forget (0 or 1)
+        
+        Must create labels in same function to ensure proper level order of frames
         """
         board_length = self.parent.settings.board_length
         delay = self.parent.settings.delay_between_board_labels
+        background_color = self.parent.settings.countdown_background_color
 
         if call_num == 0:
             if winner == 'predators':
+                self.predator_win_label = ttk.Label(self, text='Predators\n   Win!', background=background_color,
+                                            font=("Arial", 50, 'bold'), anchor='center')
                 self.predator_win_label.grid(column=0, row=0,
                                             columnspan=board_length, rowspan=board_length, sticky='nsew')
             elif winner == 'prey':
+                self.prey_win_label = ttk.Label(self, text="Prey\n Win!", background=background_color,
+                                        font=("Arial", 50, 'bold'), anchor='center')
                 self.prey_win_label.grid(column=0, row=0,
                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
             elif winner == 'tie':
+                self.tie_label = ttk.Label(self, text="Tie!", background=background_color,
+                                   font=("Arial", 50, 'bold'), anchor='center')
                 self.tie_label.grid(column=0, row=0,
                                     columnspan=board_length, rowspan=board_length, sticky='nsew')
             else:
@@ -357,7 +350,9 @@ class BoardView(tk.Frame):
                 self.prey_win_label.grid_forget()
             elif winner == 'tie':
                 self.tie_label.grid_forget()
-
+            
+            self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
+                                                font=("Arial", 50, 'bold'), anchor='center')
             self.collecting_pawns_label.grid(column=0, row=0,
                                              columnspan=board_length, rowspan=board_length, sticky='nsew')
             self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
@@ -658,7 +653,7 @@ class PreyView(tk.Canvas):
         board_length = self.parent.parent.parent.settings.board_length
 
         level_label_font_size = 55//board_length
-        birth_label_font_size = 38//board_length
+        birth_label_font_size = 37//board_length
 
         level_label_padx = (0, 58//board_length)
         level_label_pady = (0, 38//board_length)
@@ -976,7 +971,7 @@ class Configurations(tk.Frame):
         # placing labels and scales for Customize Board options
         self.custom_board_checkbutton.grid(row=1, column=0, sticky='w', columnspan=2, padx=5, pady=(8, 5))
 
-        self.restore_default_settings_button.grid(row=1, column=2, sticky='ne', padx=(0, 23), pady=(15, 0), rowspan=4)
+        self.restore_default_settings_button.grid(row=1, column=2, sticky='ne', padx=(0, 25), pady=(15, 0), rowspan=4)
 
         self.custom_board_size_label.grid(row=2, column=0, sticky='w', padx=55, columnspan=2)
         self.custom_board_size_label_grid_info = self.custom_board_size_label.grid_info()

@@ -38,24 +38,6 @@ class Controller:
         Conducts the data and visual changes for when the user starts any round
         """
 
-    def setup_board_model(self) -> None:
-        """
-        Configures the board data according to the user's configurations
-        Assigns the data for the board, its squares and animals to the view
-        Function to be called when the start game button is pressed
-        """
-        # clearing the model's attributes (keeps same model object - must clear attributes)
-        self.model.survivors = ([], []) # an alternative to this would be to create a new model object every round
-        self.model.board = [[]]
-        # creating starting animals - either default or customized by user
-        self.model.survivors = self.model.create_animals()
-        # 2d array of Square objects - each inner list represents a column 
-        self.model.board = [[SquareModel((x, y), self.settings.rounds_until_starvation) for y in range(self.settings.board_length)] for x in range(self.settings.board_length)]
-        # randomly assigning animals to the board squares
-        self.model.set_board()
-        # assigning all views their data
-        self.assign_models_to_views(start_of_game=True)
-        
     def assign_models_to_views(self, start_of_game: bool = False):
         """
         Assigns the board and square views their appropriate board or square model
@@ -163,14 +145,16 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Start Game button
         """
+        # creating new empty model with cleared attributes
+        self.model = BoardModel(self.settings)
+        # assigning all views their data
+        self.controller.assign_models_to_views(start_of_game=True)
         # need to keep track of gui update times for visual to be in appropriate order
         self.current_gui_time = 0
         # disabling configurations/number of rounds scale
         self.change_configuration_widget_states('disabled')
         # changing game control buttons shown
         self.change_game_buttons_shown('start')
-        # collecting data
-        self.controller.setup_board_model()
         # displaying the round and scattering pawns labels
         round_num = self.model.current_round
         self.view.board_frame.display_round_and_scattering_pawns_labels(round_num)
@@ -189,6 +173,7 @@ class WidgetCommands:
         self.controller.assign_models_to_views()
         # displaying the rounds results
         self.view.board_frame.after(self.current_gui_time, self.view.board_frame.diagonal_matrix_draw_all_results)
+
 
 
         # erasing all previous animal pawns from board 

@@ -361,22 +361,37 @@ class SquareModel:
 class BoardModel:
     """
     Handles the logic/data for conducting the game's rounds
+
+    Attributes are set upon their call by the controller when
+    necessary to handle current game logic/determine visuals
     """
 
     current_round: int
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
     board: list[list['SquareModel']]
+    average_levels: tuple[float, float]
+    total_populations: tuple[int, int]
+    levels_to_populations: tuple[dict[int, int], dict[int, int]]
 
 
     def __init__(self, settings: 'CurrentSettings'):
         """
         Initializing settings, starting pieces, squares, and the board
+
+        A new blank model is created upon the start of every game -
+        attributes of squares/animals are dependent on the current settings
         """
         self.current_round = 1
         self.settings = settings
         self.survivors = ([], [])
         self.board = [[]]
+        # creating starting animals - either default or customized by user
+        self.survivors = self.create_animals()
+        # 2d array of Square objects - each inner list represents a column 
+        self.board = [[SquareModel((x, y), self.settings.rounds_until_starvation) for y in range(self.settings.board_length)] for x in range(self.settings.board_length)]
+        # randomly assigning animals to the board squares
+        self.set_board()
 
     def create_animals(self) -> tuple[list['PredatorModel'], list['PreyModel']]:
         """
@@ -524,13 +539,13 @@ class BoardModel:
         # redefining self.survivors tuple with animals that survived the population_cap removal
         self.survivors = tuple(actual_survivors) # type: ignore
 
-    def calculate_average_levels(self) -> tuple[float, float]:
+    def calculate_average_levels(self) -> None:
 
         """
-        Calculates the average skill level for predators and for prey.
+        Calculates the average skill level for all predators and all prey.
         Sums all the skill levels of animals from self.survivors (tuple[list['Predator'], list['Prey']])
 
-        Returns:
+        Determined values are stored in the average_levels attribute:
             - tuple[float, float]
                 - (0) is the average of the predators' skill levels
                 - (1) is the average of the preys' skill levels
@@ -555,29 +570,29 @@ class BoardModel:
             sum_prey_levels += p.skill_level
 
         # calculating and returning average to 1 decimal place
-        return round(sum_predators_levels/len(predators), 1), round(sum_prey_levels/len(prey), 1)
+        self.average_levels = round(sum_predators_levels/len(predators), 1), round(sum_prey_levels/len(prey), 1)
     
-    def calculate_total_populations(self) -> tuple[int, int]:
+    def calculate_total_populations(self) -> None:
         """
         Calculates population data of predators and prey - to be used at beginning of game and after each round.
         Calculates length of each list in self.survivors (tuple[list['Predator'], list['Prey']])
 
-        Returns:
+        Determined values are stored in the total_populations attribute
             - tuple[int, int]:
                 - (0) is the predator total population
                 - (1) is the prey total population
         """
         predators, prey = self.survivors
         # total populations without respect to skill levels
-        return len(predators), len(prey)
+        self.total_populations = len(predators), len(prey)
 
-    def calculate_levels_to_populations(self) -> tuple[dict[int, int], dict[int, int]]:
+    def calculate_levels_to_populations(self) -> None:
         """
         Calculates population data of predators and prey - to be used at beginning and end of game.
         Walks through self.survivors (tuple[list['Predator'], list['Prey']]) and finds each ones
         populations with respect to skill levels
 
-        Returns:
+        Determined values are stored in the levels_to_populations attribute
             - tuple[dict[int, int], dict[int, int]]
                 - (0) (dict[int, int]) hold the predators population sizes with respect to skill level
                     - keys are the skill levels
@@ -596,4 +611,5 @@ class BoardModel:
         for p in prey:
             prey_levels_to_population[p.skill_level] += 1
 
-        return dict(predator_levels_to_population), dict(prey_levels_to_population)
+        self.levels_to_populations =  dict(predator_levels_to_population), dict(prey_levels_to_population)
+
