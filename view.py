@@ -61,12 +61,14 @@ class BoardView(tk.Frame):
     board_visuals_2d: list[list['SquareView']] # attributed when draw board method is called
     board_visuals_1d: list['SquareView'] # attributed when the draw board method is called
     board_visuals_diagonal_matrix: list[list['SquareView']] # attributed when the draw board method is called
+    animal_pawns_to_erase: list['PredatorView | PreyView']
 
     def __init__(self, parent: View):
         # setting parent frame for settings retrieval
         self.parent = parent
         board_length = self.parent.settings.board_length
         self.board_visuals_1d = []
+        self.animal_pawns_to_erase = []
         self.rel_tile_width_and_height = 1/board_length
         # assigning its own frame to the parent and setting its border
         super().__init__(parent, bd=3, relief='solid')
@@ -129,31 +131,41 @@ class BoardView(tk.Frame):
 
     def randomly_draw_all_animals(self):
         """
-        First erases all existing animal pieces from every square 
-        then draws all new animal pieces on the board randomly
+        Draws or erases all new animal pieces on the board randomly
         """
         # finding the delay between each pawns placement
         random_pawn_placement_time = self.parent.settings.random_pawn_placement_time
         total_population = self.parent.settings.num_initial_predators + self.parent.settings.num_initial_prey
         self.delay_between_pawns = random_pawn_placement_time//total_population
         # grabbing a list of all animal pawns
-        self.all_animal_pawns: list['PredatorView | PreyView'] = [] # type: ignore
+        self.all_animal_pawns_to_change: list['PredatorView | PreyView'] = [] # type: ignore
         for square_view in self.board_visuals_1d:
             for animal_pawn in square_view.square_animal_views:
-                self.all_animal_pawns.append(animal_pawn)
+                self.all_animal_pawns_to_change.append(animal_pawn)
 
-        # randomly placing animals 1 by 1 at start of game
+        # randomly drawing all animals 1 by 1 at start of game
         self.place_pawn()
     
+    def randomly_collect_all_animals(self):
+        """
+        Erases all animal pieces on the board randomly
+        """
+        if self.animal_pawns_to_erase:
+            random_pawn = random.choice(self.animal_pawns_to_erase)
+            random_pawn.destroy()
+            self.animal_pawns_to_erase.remove(random_pawn)
+            # adding delay to placement
+            self.after(self.delay_between_pawns, self.randomly_collect_all_animals)
+
     def place_pawn(self):
         """
         Draws a single pawn on a square then schedules itself
         to be called again after the delay_between_pawn_placement
         """
-        if self.all_animal_pawns:
-            random_pawn = random.choice(self.all_animal_pawns)
+        if self.all_animal_pawns_to_change:
+            random_pawn = random.choice(self.all_animal_pawns_to_change)
             random_pawn.draw_piece()
-            self.all_animal_pawns.remove(random_pawn)
+            self.all_animal_pawns_to_change.remove(random_pawn)
             # adding delay to placement
             self.after(self.delay_between_pawns, self.place_pawn)
     
@@ -262,14 +274,9 @@ class BoardView(tk.Frame):
             # adding delay then hiding go label
             self.after(1250, lambda: self.countdown_label_go.grid_forget())
 
-    def display_round_and_scattering_pawns_labels(self, round_num: int, call_num=0):
+    def display_round_label(self, round_num: int):
         """
         Displays the round number in the center of the board
-        After the delay between board labels, on the second call, (call_num = 0 or 1)
-        the scattering pawns label is displayed
-
-        Depending on user's autofinish configuration there will either be an automatic
-        delay or wait for call_num=1 upon the start round button being clicked
 
         Must create labels in same function to ensure proper level order of frames
         """
@@ -277,31 +284,35 @@ class BoardView(tk.Frame):
         delay = self.parent.settings.delay_between_board_labels
         background_color = self.parent.settings.countdown_background_color
         # placing labels at specific time intervals
-        if call_num == 0:
-            # creating label
-            self.round_label = ttk.Label(self, text='Round 1', background=background_color,
-                                     font=("Arial", 60, 'bold'), anchor='center')
-            # placing round label
-            self.round_label.configure(text=f'Round {round_num}')
-            self.round_label.grid(column=0, row=0,
-                                  columnspan=board_length, rowspan=board_length, sticky='nsew')
-            # adding delay
-            self.after(delay, self.display_round_and_scattering_pawns_labels, round_num, 1)
-            # function will be called with call_num=1 upon user clicking start round button if pause is turned on
+        # creating label
+        self.round_label = ttk.Label(self, text='Round 1', background=background_color,
+                                    font=("Arial", 60, 'bold'), anchor='center')
+        # placing round label
+        self.round_label.configure(text=f'Round {round_num}')
+        self.round_label.grid(column=0, row=0,
+                                columnspan=board_length, rowspan=board_length, sticky='nsew')
+        # adding delay
+        self.after(delay, lambda: self.round_label.grid_forget())       
+    
+    def display_scattering_pawns_label(self):
+        """
+        Displays the scattering pawns label
 
-        # second call for displaying scattering pawns
-        elif call_num == 1:
-            # creating label
-            self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
-                                             font=("Arial", 50, 'bold'), anchor='center')
-            # forgetting round label
-            self.round_label.grid_forget()
-            # adding Scattering Pawns label
-            self.scattering_pawns_label.grid(column=0, row=0,
-                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
-            self.lift(self.scattering_pawns_label)
-            # adding delay then forgetting the GO! label
-            self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
+        Must create labels in same function to ensure proper level order of frames
+        """
+        board_length = self.parent.settings.board_length
+        delay = self.parent.settings.delay_between_board_labels
+        background_color = self.parent.settings.countdown_background_color
+        # creating label
+        self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
+                                            font=("Arial", 50, 'bold'), anchor='center')
+        # forgetting round label
+        self.round_label.grid_forget()
+        # adding Scattering Pawns label
+        self.scattering_pawns_label.grid(column=0, row=0,
+                                        columnspan=board_length, rowspan=board_length, sticky='nsew')
+        # adding delay then forgetting the GO! label
+        self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
 
     def display_winner_label(self, winner: str):
         """
@@ -317,7 +328,7 @@ class BoardView(tk.Frame):
         Must create labels in same function to ensure proper level order of frames
         """
         board_length = self.parent.settings.board_length
-        delay = self.parent.settings.delay_between_board_labels
+        delay = int(self.parent.settings.delay_between_board_labels * 1.5)
         background_color = self.parent.settings.countdown_background_color
 
         if winner == 'predator':
@@ -373,7 +384,6 @@ class SquareView(tk.Frame):
         # setting parent frame for settings retrieval
         self.parent = parent
         self.background_color = background_color
-        self.square_animal_views = []
         # assigning the tile frame inside of the board frame and adding a border
         super().__init__(parent, bd=4, relief='solid', background=self.background_color)
         # board coordinates (0-board_length)
@@ -402,6 +412,7 @@ class SquareView(tk.Frame):
         # sorting by descending skill levels to format the animal pieces by level
         self.square_data.predators.sort(reverse=True, key=lambda prey: prey.skill_level)
         self.square_data.prey.sort(reverse=True, key=lambda predator: predator.skill_level)
+        self.square_animal_views = []
         # nicknaming
         predators = self.square_data.predators
         prey = self.square_data.prey
@@ -474,6 +485,7 @@ class SquareView(tk.Frame):
         Draws all animals in its own square frame
         """
         for animal_view in self.square_animal_views:
+            self.parent.animal_pawns_to_erase.append(animal_view)
             animal_view.draw_piece()
             animal_view.place(relx=animal_view.relative_placement[0], rely=animal_view.relative_placement[1])
 
@@ -1147,7 +1159,7 @@ class ScoreBoard(tk.Frame):
         Creates the widgets for the inside of this frame
         """
 
-        self.round_label = ttk.Label(self, text='Round 1', font=("Arial", 32, "underline"),
+        self.round_label = ttk.Label(self, text='Round 0', font=("Arial", 32, "underline"),
                                      background=self.background_color, anchor='center')
 
         self.predator_stats_label = ttk.Label(self, text='Predator Stats:', font=("Arial", 16, "bold"),
@@ -1253,6 +1265,16 @@ class ScoreBoard(tk.Frame):
         color = "green" if current_avg_hunger_level > previous_avg_hunger_level \
             else "red" if current_avg_hunger_level < previous_avg_hunger_level else "gray27"
         self.predator_starvation_marker.configure(text=current_avg_hunger_level, foreground=color)
+
+    def uncolor_scoreboard_text(self):
+        """
+        Uncolors the scoreboard text color changes from the results of the round
+        """
+        self.predator_population_marker.configure(foreground='black')
+        self.prey_population_marker.configure(foreground='black')
+        self.predator_level_marker.configure(foreground='black')
+        self.prey_level_marker.configure(foreground='black')
+        self.predator_starvation_marker.configure(foreground='black')
 
 
 class BoardKey(tk.Frame):

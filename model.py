@@ -370,6 +370,7 @@ class BoardModel:
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
     winner: str
+    wins: dict[str, int]
     board: list[list['SquareModel']]
     previous_total_populations: tuple[int, int]
     total_populations: tuple[int, int]
@@ -385,10 +386,11 @@ class BoardModel:
         A new blank model is created upon the start of every game -
         attributes of squares/animals are dependent on the current settings
         """
-        self.current_round = 1
+        self.current_round = 0
         self.settings = settings
         self.survivors = ([], [])
         self.board = [[]]
+        self.wins = {'predator': 0, 'prey': 0}
         # creating starting animals - either default or customized by user
         self.survivors = self.create_animals()
         # finding the starting stats
@@ -397,8 +399,6 @@ class BoardModel:
         self.calculate_average_hunger_level()
         # 2d array of Square objects - each inner list represents a column 
         self.board = [[SquareModel((x, y), self.settings.rounds_until_starvation) for y in range(self.settings.board_length)] for x in range(self.settings.board_length)]
-        # randomly assigning animals to the board squares
-        self.set_board()
 
     def create_animals(self) -> tuple[list['PredatorModel'], list['PreyModel']]:
         """
@@ -450,9 +450,9 @@ class BoardModel:
             assert 0 <= self.settings.num_initial_prey <= (self.settings.board_length ** 2) * 4
             # adding customized animals
             for _ in range(self.settings.num_initial_predators):
-                animals[0].append(PredatorModel(self.settings.predator_starting_level, 1, self.settings.rounds_until_starvation))
+                animals[0].append(PredatorModel(self.settings.predator_starting_level, 0, self.settings.rounds_until_starvation))
             for _ in range(self.settings.num_initial_prey):
-                animals[1].append(PreyModel(self.settings.prey_starting_level, 1))
+                animals[1].append(PreyModel(self.settings.prey_starting_level, 0))
 
         return animals
 
@@ -489,6 +489,7 @@ class BoardModel:
         Updates each square's current round +1
         To be used at the end of every round
         """
+        self.current_round += 1
         for x in range(self.settings.board_length):
             for y in range(self.settings.board_length):
                 self.board[x][y].current_round += 1
@@ -577,8 +578,10 @@ class BoardModel:
             prey_population_gain = self.total_populations[1] - self.previous_total_populations[1]
             if predator_population_gain > prey_population_gain:
                 self.winner = 'predator'
+                self.wins['predator'] += 1
             elif prey_population_gain > predator_population_gain:
                 self.winner = 'prey'
+                self.wins['prey'] += 1
             else:
                 self.winner = 'tie'
     

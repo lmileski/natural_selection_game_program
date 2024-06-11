@@ -37,7 +37,7 @@ class Controller:
         Conducts the data and visual changes for when the user starts any round
         """
 
-    def assign_models_to_views(self, start_of_game: bool = False):
+    def assign_models_to_views(self, start_of_round = False):
         """
         Assigns the board and square views their appropriate board or square model
         Needed for updating the round's data to display changes in surviving/born animals
@@ -60,7 +60,8 @@ class Controller:
             for y, square_model in enumerate(column):
                 square_view = self.view.board_frame.board_visuals_2d[x][y]
                 setattr(square_view, 'square_data', square_model)
-                if start_of_game:
+                # assigns the square view their animal view objects
+                if start_of_round:
                     square_view.create_animals()
 
     def set_widget_commands(self) -> None:
@@ -153,30 +154,16 @@ class WidgetCommands:
         # setting up the model upon its initialization depending on the user's configurations
         self.controller.model = BoardModel(self.settings)
         self.model = self.controller.model
-        # assigning all views their data
-        self.controller.assign_models_to_views(start_of_game=True)
         # need to keep track of gui update times for visual to be in appropriate order
         self.current_gui_time = 0
+        # increasing round number
+        self.model.current_round += 1
         # disabling configurations/number of rounds scale
         self.change_configuration_widget_states('disabled')
         # changing game control buttons shown
         self.change_game_buttons_shown('start')
-        # displaying the round and scattering pawns labels
-        round_num = self.model.current_round
-        self.view.board_frame.display_round_and_scattering_pawns_labels(round_num)
-        self.current_gui_time += self.settings.delay_between_board_labels * 2
-        # randomly drawing animals on the board
-        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.randomly_draw_all_animals)
-        self.current_gui_time += self.settings.random_pawn_placement_time + 1500 # buffer
-        # displaying the 'start round' button if the user has pause between rounds on
-        if self.settings.pause_between_rounds == 'on':
-            # displaying the round start button and resetting gui time - code only runs on button press
-            self.view.left_menu_frame.game_controls.after(self.current_gui_time, lambda:
-                self.view.left_menu_frame.game_controls.start_round_button.grid(**self.view.left_menu_frame.game_controls.start_round_button_grid_info))
-            self.current_gui_time = 0
-        else: # starts the round automatically if 'off'
-            self.current_gui_time += self.settings.delay_between_rounds * 1000 # adding customized buffer - in seconds
-            self.start_round_button_command()
+        # displaying scatter pawns label and doing so
+        self.scatter_pawns()
     
     def reset_game_button_command(self) -> None:
         """
@@ -229,16 +216,66 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Finish Round button
         """
+        # hiding the finish round button
+        self.view.left_menu_frame.game_controls.finish_round_button.grid_forget()
+        # uncoloring the scoreboard's marker colors
+        self.view.right_menu_frame.scoreboard.uncolor_scoreboard_text()
         # displaying the collecting pawns label
         self.view.board_frame.after(self.current_gui_time, self.view.board_frame.display_collecting_pawns_label)
-
-        # erasing all previous animal pawns from board 
-        #self.erase_all_animals()
+        self.current_gui_time += self.settings.delay_between_board_labels + 1500 # buffer
+        # collecting the board's pawns
+        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
+        self.current_gui_time += self.settings.random_pawn_placement_time + 1000
+        # clearing the data from the model's previous squares and updating round number
+        self.view.after(self.current_gui_time, self.model.clear_board)
+        # checking if it's the last round
+        if self.model.current_round == self.settings.num_rounds:
+            # displaying the winner - team with most round wins
+            winner = max(self.model.wins, key=lambda k: self.model.wins[k])
+            # multiplying the delay by 3 then reverting back
+            previous_delay = self.settings.delay_between_board_labels
+            self.settings.delay_between_board_labels *= 3
+            self.view.board_frame.after(self.current_gui_time, self.view.board_frame.display_winner_label, winner)
+            self.settings.delay_between_board_labels = previous_delay
+        else:
+            self.scatter_pawns()
 
     def export_data_to_excel_button_command(self) -> None:
         """
         Handles events when the user clicks the Export Game Data to Excel button
         """
+
+    def scatter_pawns(self, start_of_game = False) -> None:
+        """
+        Scatters the game pawns
+        """
+        # assigning squares their animals
+        self.model.set_board()
+        # integrating views and models
+        self.controller.assign_models_to_views(start_of_round=True)
+        # displaying the round and scattering pawns labels
+        self.view.board_frame.after(
+            self.current_gui_time, lambda: self.view.board_frame.display_round_label(self.model.current_round))
+        # updating the round
+        self.view.right_menu_frame.scoreboard.after(
+                self.current_gui_time, lambda: self.view.right_menu_frame.scoreboard.round_label.configure(text=f'Round {self.model.current_round}'))
+        
+        self.current_gui_time += self.settings.delay_between_board_labels
+
+        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.display_scattering_pawns_label)
+        self.current_gui_time += self.settings.delay_between_board_labels + 500 # buffer
+        # randomly drawing animals on the board
+        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.randomly_draw_all_animals)
+        self.current_gui_time += self.settings.random_pawn_placement_time + 1500 # buffer
+        # displaying the 'start round' button if the user has pause between rounds on
+        if self.settings.pause_between_rounds == 'on':
+            # displaying the round start button and resetting gui time - code only runs on button press
+            self.view.left_menu_frame.game_controls.after(self.current_gui_time, lambda:
+                self.view.left_menu_frame.game_controls.start_round_button.grid(**self.view.left_menu_frame.game_controls.start_round_button_grid_info))
+            self.current_gui_time = 0
+        else: # starts the round automatically if 'off'
+            self.current_gui_time += self.settings.delay_between_rounds * 1000 # adding customized buffer - in seconds
+            self.start_round_button_command()
 
     def change_configuration_widget_states(self, state: str) -> None:
         """
