@@ -278,7 +278,6 @@ class BoardView(tk.Frame):
         background_color = self.parent.settings.countdown_background_color
         # placing labels at specific time intervals
         if call_num == 0:
-            pause_status = self.parent.settings.pause_between_rounds
             # creating label
             self.round_label = ttk.Label(self, text='Round 1', background=background_color,
                                      font=("Arial", 60, 'bold'), anchor='center')
@@ -287,8 +286,7 @@ class BoardView(tk.Frame):
             self.round_label.grid(column=0, row=0,
                                   columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay
-            if pause_status == 'off': # if no pause, use delay
-                self.after(delay, self.display_round_and_scattering_pawns_labels, round_num, 1)
+            self.after(delay, self.display_round_and_scattering_pawns_labels, round_num, 1)
             # function will be called with call_num=1 upon user clicking start round button if pause is turned on
 
         # second call for displaying scattering pawns
@@ -305,17 +303,16 @@ class BoardView(tk.Frame):
             # adding delay then forgetting the GO! label
             self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
 
-    def display_winner_and_collecting_pawns_labels(self, winner: str, call_num: int):
+    def display_winner_label(self, winner: str):
         """
         Displays the winner of the round in the center of the board
         After winner is displayed, the collecting pawns label is displayed
 
         Parameters:
             - winner (str): the winner of the game - either
-                - 'predators' or
+                - 'predator' or
                 - 'prey' or
                 - 'tie'
-            - call_num (int): what labels to hide/forget (0 or 1)
         
         Must create labels in same function to ensure proper level order of frames
         """
@@ -323,39 +320,40 @@ class BoardView(tk.Frame):
         delay = self.parent.settings.delay_between_board_labels
         background_color = self.parent.settings.countdown_background_color
 
-        if call_num == 0:
-            if winner == 'predators':
-                self.predator_win_label = ttk.Label(self, text='Predators\n   Win!', background=background_color,
-                                            font=("Arial", 50, 'bold'), anchor='center')
-                self.predator_win_label.grid(column=0, row=0,
-                                            columnspan=board_length, rowspan=board_length, sticky='nsew')
-            elif winner == 'prey':
-                self.prey_win_label = ttk.Label(self, text="Prey\n Win!", background=background_color,
+        if winner == 'predator':
+            self.predator_label = ttk.Label(self, text='Predators\n    Win!', background=background_color,
                                         font=("Arial", 50, 'bold'), anchor='center')
-                self.prey_win_label.grid(column=0, row=0,
+            self.predator_label.grid(column=0, row=0,
                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
-            elif winner == 'tie':
-                self.tie_label = ttk.Label(self, text="Tie!", background=background_color,
-                                   font=("Arial", 50, 'bold'), anchor='center')
-                self.tie_label.grid(column=0, row=0,
+        elif winner == 'prey':
+            self.prey_label = ttk.Label(self, text="Prey\nWin!", background=background_color,
+                                    font=("Arial", 50, 'bold'), anchor='center')
+            self.prey_label.grid(column=0, row=0,
                                     columnspan=board_length, rowspan=board_length, sticky='nsew')
-            else:
+        elif winner == 'tie':
+            self.tie_label = ttk.Label(self, text="Tie!", background=background_color,
+                                font=("Arial", 50, 'bold'), anchor='center')
+            self.tie_label.grid(column=0, row=0,
+                                columnspan=board_length, rowspan=board_length, sticky='nsew')
+        else:
                 raise ValueError("winner argument may only be 'predators', 'prey', or 'tie'")
-            self.after(delay, self.display_winner_and_collecting_pawns_labels, winner, 1)
+        
+        label_displayed = getattr(self, f'{winner}_label')
+        self.after(delay, lambda: label_displayed.grid_forget())
 
-        elif call_num == 1:
-            if winner == 'predators':
-                self.predator_win_label.grid_forget()
-            elif winner == 'prey':
-                self.prey_win_label.grid_forget()
-            elif winner == 'tie':
-                self.tie_label.grid_forget()
-            
-            self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
+    def display_collecting_pawns_label(self):
+        """
+        Displays the collecting pawns label in the board frame
+        """
+        board_length = self.parent.settings.board_length
+        delay = self.parent.settings.delay_between_board_labels
+        background_color = self.parent.settings.countdown_background_color
+
+        self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
                                                 font=("Arial", 50, 'bold'), anchor='center')
-            self.collecting_pawns_label.grid(column=0, row=0,
-                                             columnspan=board_length, rowspan=board_length, sticky='nsew')
-            self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
+        self.collecting_pawns_label.grid(column=0, row=0,
+                                            columnspan=board_length, rowspan=board_length, sticky='nsew')
+        self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
         
 
 class SquareView(tk.Frame):
@@ -675,7 +673,6 @@ class PreyView(tk.Canvas):
             birth_label_padx = (58//board_length, 0)
             birth_label_pady = (48//board_length, 0)
 
-
         self.level_label = ttk.Label(self, text=self.level, font=('Arial', level_label_font_size, 'bold'),
                                      background=self.circle_background_color)
         self.birth_label = ttk.Label(self, text=self.birth_round, font=('Arial', birth_label_font_size, 'bold'),
@@ -774,6 +771,8 @@ class LeftMenu(tk.Frame):
         widget_style.configure('TButton', background=widget_background_color, font=('Arial', 12, 'bold'))
         widget_style.configure('TScale', background=widget_background_color)
         widget_style.configure('TCombobox', fieldbackground=widget_background_color, font=('Arial', 12, 'bold'))
+        highlighted_button_style = ttk.Style()
+        highlighted_button_style.configure('highlighted_button.TButton', foregr='gold', font=('Arial', 12, 'bold'))
         # creating child frames - pack from top to bottom upon construction
         self.game_controls = GameControls(self)
         self.configurations = Configurations(self)
@@ -820,7 +819,8 @@ class GameControls(tk.Frame):
         self.reset_game_button = ttk.Button(self, text='Reset\nGame')
         self.autofinish_game_button = ttk.Button(self, text='Autofinish\n    Game')
         self.pause_button = ttk.Button(self, text='Pause\n Game')
-        self.start_round_button = ttk.Button(self, text='  Start\nRound')
+        self.start_round_button = ttk.Button(self, text='  Start\nRound', style='highlighted_button.TButton')
+        self.finish_round_button = ttk.Button(self, text=' Finish\nRound', style='highlighted_button.TButton')
         self.export_data_button = ttk.Button(self, text='    Export\nGame Data\n   to Excel')
         # placeholder label for preventing game controls frame from rescaling when hiding buttons
         self.placeholder_label = ttk.Label(self, text='', background=self.background_color)
@@ -845,6 +845,7 @@ class GameControls(tk.Frame):
         self.autofinish_game_button.grid(row=2, column=0, padx=(30, 10), pady=(5, 10))
         self.pause_button.grid(row=1, column=1, padx=10, pady=15)
         self.start_round_button.grid(row=2, column=1, padx=10, pady=(5, 10))
+        self.finish_round_button.grid(row=2, column=1, padx=10, pady=(5, 10))
         self.export_data_button.grid(row=1, column=2, padx=15, pady=15, rowspan=2, sticky='ne')
         # placeholder label
         self.placeholder_label.grid(row=2, column=1, padx=10, pady=(5, 40))
@@ -858,12 +859,15 @@ class GameControls(tk.Frame):
         self.autofinish_game_button_grid_info = self.autofinish_game_button.grid_info()
         self.pause_button_grid_info = self.pause_button.grid_info()
         self.start_round_button_grid_info = self.start_round_button.grid_info()
+        self.finish_round_button_grid_info = self.finish_round_button.grid_info()
         self.export_data_button_grid_info = self.export_data_button.grid_info()
+        self.placeholder_label_grid_info = self.placeholder_label.grid_info()
         # grid forgetting any buttons that won't be initially displayed
         self.reset_game_button.grid_forget()
         self.autofinish_game_button.grid_forget()
         self.pause_button.grid_forget()
         self.start_round_button.grid_forget()
+        self.finish_round_button.grid_forget()
         self.export_data_button.grid_forget()
 
 
@@ -968,10 +972,11 @@ class Configurations(tk.Frame):
                                                 font=("Arial", 18, 'bold'), activebackground=self.background_color,
                                                 variable=self.automatic_round_start_checkbox_value)
 
+        default_delay = int(self.parent.parent.settings.delay_between_rounds)
         self.round_delay_label = ttk.Label(self, text='Delay Between Rounds:', background=self.background_color, font=("Arial", 13))
         self.custom_round_delay_scale = ttk.Scale(self, from_=0, to=10, length=150)
-        self.custom_round_delay_scale.set(3)
-        self.custom_round_delay_scale_marker = ttk.Label(self, text='3s', background=self.background_color, font=("Arial", 14, 'bold'))
+        self.custom_round_delay_scale.set(default_delay)
+        self.custom_round_delay_scale_marker = ttk.Label(self, text=f'{default_delay}s', background=self.background_color, font=("Arial", 14, 'bold'))
     
     def place_widgets(self):
         """

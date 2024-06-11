@@ -369,7 +369,9 @@ class BoardModel:
     current_round: int
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
+    winner: str
     board: list[list['SquareModel']]
+    previous_total_populations: tuple[int, int]
     total_populations: tuple[int, int]
     average_levels: tuple[float, float]
     average_hunger_level: float
@@ -553,6 +555,7 @@ class BoardModel:
         """
         Calculates population data of predators and prey - to be used at beginning of game and after each round.
         Calculates length of each list in self.survivors (tuple[list['Predator'], list['Prey']])
+        Additionally, assigns the winning team of the round to whichever team had the highest net growth
 
         Determined values are stored in the total_populations attribute
             - tuple[int, int]:
@@ -560,8 +563,24 @@ class BoardModel:
                 - (1) is the prey total population
         """
         predators, prey = self.survivors
-        # total populations without respect to skill levels
-        self.total_populations = len(predators), len(prey)
+        # determining if its the start of game - uninitialized
+        if getattr(self, 'total_populations', None) == None and getattr(self, 'previous_total_populations', None) == None:
+            # initializing both with the first population sizes
+            self.total_populations = len(predators), len(prey)
+            self.previous_total_populations = self.total_populations
+        else:
+            self.previous_total_populations = self.total_populations
+            # finding newest populations
+            self.total_populations = len(predators), len(prey)
+            # finding the winner - team with the highest net growth
+            predator_population_gain = self.total_populations[0] - self.previous_total_populations[0]
+            prey_population_gain = self.total_populations[1] - self.previous_total_populations[1]
+            if predator_population_gain > prey_population_gain:
+                self.winner = 'predator'
+            elif prey_population_gain > predator_population_gain:
+                self.winner = 'prey'
+            else:
+                self.winner = 'tie'
     
     def calculate_average_levels(self) -> None:
         """

@@ -68,8 +68,8 @@
         "num_rounds": 5,
         "pause_between_rounds": "on",
         "delay_between_rounds": 5,
-        "random_pawn_placement_time": 1000,
-        "delay_between_board_labels": 800,
+        "random_pawn_placement_time": 1500,
+        "delay_between_board_labels": 900,
         "delay_between_square_results_labels": 500,
         "countdown_background_color": "MediumPurple3"
     }
