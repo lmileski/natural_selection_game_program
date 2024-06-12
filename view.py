@@ -367,7 +367,7 @@ class BoardView(tk.Frame):
         label_displayed = getattr(self, f'{winner}_label')
         self.after(delay, lambda: label_displayed.grid_forget())
 
-    def display_game_winner_label(self, winner: str):
+    def display_game_winner_label(self, winner: str, method: str):
         """
         Displays the winner of the game label
 
@@ -376,30 +376,41 @@ class BoardView(tk.Frame):
                 - 'predator' or
                 - 'prey' or
                 - 'tie'
+            - method (str): the method to change the display - either
+                - 'show' or
+                - 'destroy'
         
         Must create labels in same function to ensure proper level order of frames
         """
         board_length = self.parent.settings.board_length
-        delay = int(self.parent.settings.delay_between_board_labels * 2)
         background_color = self.parent.settings.countdown_background_color
 
         if winner == 'predator':
-            self.predator_label = ttk.Label(self, text='Game Winner:\n   Predators!', background=background_color,
-                                        font=("Arial", 75, 'bold'), anchor='center')
-            self.predator_label.grid(column=0, row=0,
+            if method == 'show':
+                self.predator_label = ttk.Label(self, text='Game Winner:\n   Predators!', background=background_color,
+                                            font=("Arial", 75, 'bold'), anchor='center')
+                self.predator_label.grid(column=0, row=0,
                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
+            elif method == 'destroy':
+                self.predator_label.destroy()
         elif winner == 'prey':
-            self.prey_label = ttk.Label(self, text="Game Winner:\n        Prey!", background=background_color,
-                                    font=("Arial", 75, 'bold'), anchor='center')
-            self.prey_label.grid(column=0, row=0,
+            if method == 'show':
+                self.prey_label = ttk.Label(self, text="Game Winner:\n        Prey!", background=background_color,
+                                        font=("Arial", 75, 'bold'), anchor='center')
+                self.prey_label.grid(column=0, row=0,
                                     columnspan=board_length, rowspan=board_length, sticky='nsew')
+            elif method == 'destroy':
+                self.prey_label.destroy()
         elif winner == 'tie':
-            self.tie_label = ttk.Label(self, text="Game Winner:\n         Tie!", background=background_color,
-                                font=("Arial", 75, 'bold'), anchor='center')
-            self.tie_label.grid(column=0, row=0,
+            if method == 'show':
+                self.tie_label = ttk.Label(self, text="Game Winner:\n         Tie!", background=background_color,
+                                    font=("Arial", 75, 'bold'), anchor='center')
+                self.tie_label.grid(column=0, row=0,
                                 columnspan=board_length, rowspan=board_length, sticky='nsew')
+            elif method == 'destroy':
+                self.prey_label.destroy()
         else:
-                raise ValueError("winner argument may only be 'predators', 'prey', or 'tie'")
+                raise ValueError("winner argument may only be 'predators', 'prey', or 'tie' and method argument may only be 'show' or 'destroy'")
 
 
 class SquareView(tk.Frame):
@@ -815,11 +826,11 @@ class LeftMenu(tk.Frame):
         # setting up widget styles
         widget_background_color = self.parent.settings.widget_background_color
         widget_style = ttk.Style()
-        widget_style.configure('TButton', background=widget_background_color, font=('Arial', 12, 'bold'))
+        widget_style.configure('TButton', background=widget_background_color, font=('Arial', 14, 'bold'))
         widget_style.configure('TScale', background=widget_background_color)
         widget_style.configure('TCombobox', fieldbackground=widget_background_color, font=('Arial', 12, 'bold'))
         highlighted_button_style = ttk.Style()
-        highlighted_button_style.configure('highlighted_button.TButton', foregr='gold', font=('Arial', 12, 'bold'))
+        highlighted_button_style.configure('highlighted_button.TButton', background='DarkGoldenrod3', font=('Arial', 14, 'bold'))
         # creating child frames - pack from top to bottom upon construction
         self.game_controls = GameControls(self)
         self.configurations = Configurations(self)
@@ -862,13 +873,12 @@ class GameControls(tk.Frame):
         """
         self.title = ttk.Label(self, text='Game Controls', background=self.background_color, font=("Arial", 39, 'underline'))
         # creating game control buttons
-        self.start_game_button = ttk.Button(self, text=' Start\nGame')
+        self.start_game_button = ttk.Button(self, text=' Start\nGame', style='highlighted_button.TButton')
         self.reset_game_button = ttk.Button(self, text='Reset\nGame')
         self.autofinish_game_button = ttk.Button(self, text='Autofinish\n    Game')
-        self.pause_button = ttk.Button(self, text='Pause\n Game')
         self.start_round_button = ttk.Button(self, text='  Start\nRound', style='highlighted_button.TButton')
-        self.finish_round_button = ttk.Button(self, text=' Finish\nRound', style='highlighted_button.TButton')
-        self.export_data_button = ttk.Button(self, text='    Export\nGame Data\n   to Excel')
+        self.finish_round_button = ttk.Button(self, text='Finish\nRound', style='highlighted_button.TButton')
+        self.export_data_button = ttk.Button(self, text='Export\nResults', style='highlighted_button.TButton')
         # placeholder label for preventing game controls frame from rescaling when hiding buttons
         self.placeholder_label = ttk.Label(self, text='', background=self.background_color)
         # creating a scale to the user assign a certain number of rounds for the game
@@ -888,13 +898,15 @@ class GameControls(tk.Frame):
 
         self.title.grid(row=0, sticky='ns', columnspan=3)
         # placing game control buttons
-        self.start_game_button.grid(row=1, column=0, padx=10, pady=15)
-        self.reset_game_button.grid(row=1, column=0, padx=(30, 10), pady=15)
-        self.autofinish_game_button.grid(row=2, column=0, padx=(30, 10), pady=(5, 10))
-        self.pause_button.grid(row=1, column=1, padx=10, pady=15)
-        self.start_round_button.grid(row=2, column=1, padx=10, pady=(5, 10))
-        self.finish_round_button.grid(row=2, column=1, padx=10, pady=(5, 10))
-        self.export_data_button.grid(row=1, column=2, padx=15, pady=15, rowspan=2, sticky='ne')
+        self.start_game_button.grid(row=1, column=0, columnspan=3, padx=80, pady=15, sticky='w')
+        self.reset_game_button.grid(row=1, column=0, columnspan=3, padx=80, pady=15, sticky='w')
+
+        self.export_data_button.grid(row=1, column=0, columnspan=3, padx=80, pady=15, sticky='e')
+
+        self.autofinish_game_button.grid(row=2, column=0, columnspan=3, padx=80, pady=(0, 10), sticky='w')
+
+        self.start_round_button.grid(row=2, column=0, columnspan=3, padx=80, pady=(0, 10), sticky='e')
+        self.finish_round_button.grid(row=2, column=0, columnspan=3, padx=80, pady=(0, 10), sticky='e')
         # placeholder label
         self.placeholder_label.grid(row=2, column=1, padx=10, pady=(5, 40))
         # placing number of rounds scale
@@ -905,7 +917,6 @@ class GameControls(tk.Frame):
         self.start_game_button_grid_info = self.start_game_button.grid_info()
         self.reset_game_button_grid_info = self.reset_game_button.grid_info()
         self.autofinish_game_button_grid_info = self.autofinish_game_button.grid_info()
-        self.pause_button_grid_info = self.pause_button.grid_info()
         self.start_round_button_grid_info = self.start_round_button.grid_info()
         self.finish_round_button_grid_info = self.finish_round_button.grid_info()
         self.export_data_button_grid_info = self.export_data_button.grid_info()
@@ -913,7 +924,6 @@ class GameControls(tk.Frame):
         # grid forgetting any buttons that won't be initially displayed
         self.reset_game_button.grid_forget()
         self.autofinish_game_button.grid_forget()
-        self.pause_button.grid_forget()
         self.start_round_button.grid_forget()
         self.finish_round_button.grid_forget()
         self.export_data_button.grid_forget()
@@ -935,6 +945,10 @@ class Configurations(tk.Frame):
         self.background_color = self.parent.parent.settings.customize_settings_background_color
         # assigning frame to its parent frame and setting its border
         super().__init__(parent, bd=2.5, relief='solid', bg=self.background_color)
+        # creating style for reset button
+        reset_settings_style = ttk.Style()
+        widget_background_color = self.parent.parent.settings.widget_background_color
+        reset_settings_style.configure('reset_settings.TButton', background=widget_background_color, font=("Arial", 13, 'bold'))
         # assigning stored values for checkbuttons
         self.custom_board_checkbox_value = tk.IntVar()
         self.custom_animals_checkbox_value = tk.IntVar()
@@ -952,7 +966,7 @@ class Configurations(tk.Frame):
 
         self.title = ttk.Label(self, text='Customize Settings', background=self.background_color, font=("Arial", 39, 'underline'), anchor='center')
     
-        self.restore_default_settings_button = ttk.Button(self, text=' Restore\n Default\nSettings', width=10)
+        self.restore_default_settings_button = ttk.Button(self, text=' Restore\n Default\nSettings', width=10, style='reset_settings.TButton')
         # adding labels and list boxes for the Customize Board options
         self.custom_board_checkbutton = tk.Checkbutton(self, text='Customize Board', bg=self.background_color,
                                                 onvalue=True, offvalue=False,
@@ -1311,6 +1325,20 @@ class ScoreBoard(tk.Frame):
         self.predator_level_marker.configure(foreground='black')
         self.prey_level_marker.configure(foreground='black')
         self.predator_starvation_marker.configure(foreground='black')
+
+    def reset_scoreboard_text(self):
+        """
+        Resets the scoreboard value when the 'reset game' button is clicked
+        """
+        settings = self.parent.parent.settings
+
+        self.round_label.configure(text='Round 0')
+
+        self.predator_population_marker.configure(text=settings.num_initial_predators)
+        self.prey_population_marker.configure(text=settings.num_initial_prey)
+        self.predator_level_marker.configure(text=settings.predator_starting_level)
+        self.prey_level_marker.configure(text=settings.prey_starting_level)
+        self.predator_starvation_marker.configure(text=settings.rounds_until_starvation)
 
 
 class BoardKey(tk.Frame):

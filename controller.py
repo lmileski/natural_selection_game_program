@@ -76,9 +76,6 @@ class Controller:
         self.view.left_menu_frame.game_controls.reset_game_button['command'] = \
         widget_command_manager.reset_game_button_command
 
-        self.view.left_menu_frame.game_controls.pause_button['command'] = \
-        widget_command_manager.pause_game_button_command
-
         self.view.left_menu_frame.game_controls.start_round_button['command'] = \
         widget_command_manager.start_round_button_command
 
@@ -133,11 +130,14 @@ class WidgetCommands:
     Methods needed for the visual/logic changes in the program when a widget event occurs
     """
 
+    scheduled_tasks: list[int | str]
+
     def __init__(self, controller: Controller):
         """
         Sets up model, view, and controller for quick access
         """
         self.controller = controller
+        self.scheduled_tasks = [] # for storing scheduled visuals so that they may be cancelled at anytime
         # for ease of access
         self.view = self.controller.view
         self.game_controls_frame = self.view.left_menu_frame.game_controls
@@ -230,7 +230,7 @@ class WidgetCommands:
         self.current_gui_time += self.settings.delay_between_board_labels * 2 # used for winner label
         # displaying the 'finish round' button if the user has pause between rounds turned on
         if self.settings.pause_between_rounds == 'on':
-            self.current_gui_time += 1500 # adding buffer
+            self.current_gui_time += 1000 # adding buffer
             self.view.after(self.current_gui_time, lambda:
                 self.view.left_menu_frame.game_controls.finish_round_button.grid(**self.view.left_menu_frame.game_controls.finish_round_button_grid_info))
             self.current_gui_time = 0
@@ -253,18 +253,14 @@ class WidgetCommands:
         self.current_gui_time += self.settings.delay_between_board_labels + 1000 # buffer
         # collecting the board's pawns
         self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
-        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*20 + 500)
+        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*20 + 300)
         self.current_gui_time += self.settings.random_pawn_placement_time + buffer
         # checking if it's the last round
         if self.model.current_round == self.settings.num_rounds:
             self.current_gui_time += 1500
-            # displaying the winner - team with most round wins
-            winner = self.model.find_winner()
-            # multiplying the delay by 3 then reverting back
-            #previous_delay = self.settings.delay_between_board_labels
-            #self.settings.delay_between_board_labels *= 3
-            self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, winner)
-            #self.settings.delay_between_board_labels = previous_delay
+            # displaying the winner - team with highest net pop. change
+            self.winner = self.model.find_winner()
+            self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, self.winner, 'show')
         else:
             # clearing the data from the model's previous squares and updating round number
             self.model.clear_board()
@@ -277,12 +273,18 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Reset Game button
         """
-        
-    def pause_game_button_command(self) -> None:
-        """
-        Handles events when the user clicks the Pause Game button
-        """
+        # deleting the old model
+        del self.model
+        # removing the winner label from board
+        self.view.board_frame.display_game_winner_label(self.winner, 'destroy')
+        # resetting the scoreboard
+        self.view.right_menu_frame.scoreboard.reset_scoreboard_text()
+        # unlocking the user's configuration settings
+        self.change_configuration_widget_states('normal')
+        # only showing the start game button
+        self.change_game_buttons_shown('reset')
 
+        
     def export_data_to_excel_button_command(self) -> None:
         """
         Handles events when the user clicks the Export Game Data to Excel button
@@ -357,8 +359,6 @@ class WidgetCommands:
                 **self.game_controls_frame.reset_game_button_grid_info)
             self.game_controls_frame.autofinish_game_button.grid(
                 **self.game_controls_frame.autofinish_game_button_grid_info)
-            self.game_controls_frame.pause_button.grid(
-                **self.game_controls_frame.pause_button_grid_info)
         
         elif button_press == 'reset':
             self.game_controls_frame.start_game_button.grid(
@@ -368,10 +368,8 @@ class WidgetCommands:
 
             self.game_controls_frame.reset_game_button.grid_forget()
             self.game_controls_frame.autofinish_game_button.grid_forget()
-            self.game_controls_frame.pause_button.grid_forget()
-            self.game_controls_frame.start_round_button.grid_forget()
+            self.game_controls_frame.finish_round_button.grid_forget()
             
-        
         else:
             raise ValueError("The button_press argument must either be 'start' or 'reset'")
 
