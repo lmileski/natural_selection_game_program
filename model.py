@@ -369,8 +369,8 @@ class BoardModel:
     current_round: int
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
-    winner: str
-    wins: dict[str, int]
+    round_winner: str
+    round_wins: dict[str, int]
     board: list[list['SquareModel']]
     previous_total_populations: tuple[int, int]
     total_populations: tuple[int, int]
@@ -390,7 +390,7 @@ class BoardModel:
         self.settings = settings
         self.survivors = ([], [])
         self.board = [[]]
-        self.wins = {'predator': 0, 'prey': 0}
+        self.round_wins = {'predator': 0, 'prey': 0}
         # creating starting animals - either default or customized by user
         self.survivors = self.create_animals()
         # finding the starting stats
@@ -577,13 +577,13 @@ class BoardModel:
             predator_population_gain = self.total_populations[0] - self.previous_total_populations[0]
             prey_population_gain = self.total_populations[1] - self.previous_total_populations[1]
             if predator_population_gain > prey_population_gain:
-                self.winner = 'predator'
-                self.wins['predator'] += 1
+                self.round_winner = 'predator'
+                self.round_wins['predator'] += 1
             elif prey_population_gain > predator_population_gain:
-                self.winner = 'prey'
-                self.wins['prey'] += 1
+                self.round_winner = 'prey'
+                self.round_wins['prey'] += 1
             else:
-                self.winner = 'tie'
+                self.round_winner = 'tie'
     
     def calculate_average_levels(self) -> None:
         """
@@ -655,3 +655,8 @@ class BoardModel:
 
         self.levels_to_populations =  dict(predator_levels_to_population), dict(prey_levels_to_population)
 
+    def find_winner(self):
+        """
+        Finds the winner of the game
+        """
+        return max(self.round_wins, key=lambda k: self.round_wins[k])
