@@ -66,10 +66,8 @@ class BoardView(tk.Frame):
     def __init__(self, parent: View):
         # setting parent frame for settings retrieval
         self.parent = parent
-        board_length = self.parent.settings.board_length
         self.board_visuals_1d = []
         self.animal_pawns_to_erase = []
-        self.rel_tile_width_and_height = 1/board_length
         # assigning its own frame to the parent and setting its border
         super().__init__(parent, bd=3, relief='solid')
         # drawing the board (without animals)
@@ -89,7 +87,8 @@ class BoardView(tk.Frame):
         if self.board_visuals_1d:
             for square_view in self.board_visuals_1d:
                 square_view.destroy() # removing from gui
-                del square_view # removing it from memory and the list
+
+        self.board_visuals_1d = []
         self.board_visuals_2d = [[] for _ in range(board_length)]
 
         # resetting all previous column and row weights to 0 - removes grid configuration
@@ -247,6 +246,8 @@ class BoardView(tk.Frame):
         """
         board_length = self.parent.settings.board_length
         background_color = self.parent.settings.countdown_background_color
+        delay_of_number = (self.parent.settings.delay_between_board_labels*2)//3
+        delay_of_go = int(self.parent.settings.delay_between_board_labels*1.5)
 
         # forgetting the last countdown number displayed in last call if it exists (10 is max)
         last_countdown_label: tk.Label | None = getattr(self, f'countdown_label_{num_to_display+1}', None)
@@ -262,7 +263,7 @@ class BoardView(tk.Frame):
             self.countdown_label: tk.Label = getattr(self, f'countdown_label_{num_to_display}')
             self.countdown_label.grid(column=0, row=0, columnspan=board_length, rowspan=board_length, sticky='nsew')
             # displaying the next countdown number after a half-second delay
-            self.after(800, self.display_game_countdown, num_to_display-1)
+            self.after(delay_of_number, self.display_game_countdown, num_to_display-1)
 
         # for displaying GO!
         else:
@@ -272,7 +273,7 @@ class BoardView(tk.Frame):
             self.countdown_label_go.grid(column=0, row=0,
                                          columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay then hiding go label
-            self.after(1250, lambda: self.countdown_label_go.grid_forget())
+            self.after(delay_of_go, lambda: self.countdown_label_go.grid_forget())
 
     def display_round_label(self, round_num: int):
         """
@@ -328,7 +329,7 @@ class BoardView(tk.Frame):
         Must create labels in same function to ensure proper level order of frames
         """
         board_length = self.parent.settings.board_length
-        delay = int(self.parent.settings.delay_between_board_labels * 1.5)
+        delay = int(self.parent.settings.delay_between_board_labels * 2)
         background_color = self.parent.settings.countdown_background_color
 
         if winner == 'predator':

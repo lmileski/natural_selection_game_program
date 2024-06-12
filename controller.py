@@ -210,8 +210,8 @@ class WidgetCommands:
         # displaying countdown from 3 after gui has been fully updated with all animals
         self.view.after(self.current_gui_time,
                                     self.view.board_frame.display_game_countdown, 3)
-        # adding to current gui time - GO label is 1250 milliseconds, 800 is the buffer
-        self.current_gui_time += self.settings.delay_between_board_labels * 3 + 1250 + 800
+        # adding to current gui time - GO label is 1250 milliseconds, 2000 is the buffer
+        self.current_gui_time += (self.settings.delay_between_board_labels*2)//3 + int(self.settings.delay_between_board_labels*1.5) + 2000
         # calculating the results of the round
         self.model.modify_board_survivors()
         # assigning the resultant data to the board and square view objects
@@ -223,9 +223,11 @@ class WidgetCommands:
         # updating the scoreboard
         self.view.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.update_scoreboard)
         # adding buffer
-        self.current_gui_time += 900
+        buffer = int(self.model.total_populations[0] + self.model.total_populations[1]*20 + 1500)
+        self.current_gui_time += buffer
         # displaying the winner
         self.view.after(self.current_gui_time, self.view.board_frame.display_winner_label, self.model.round_winner)
+        self.current_gui_time += self.settings.delay_between_board_labels # used for winner label
         # displaying the 'finish round' button if the user has pause between rounds turned on
         if self.settings.pause_between_rounds == 'on':
             self.current_gui_time += 1500 # adding buffer
@@ -248,10 +250,11 @@ class WidgetCommands:
         self.view.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.uncolor_scoreboard_text)
         # displaying the collecting pawns label
         self.view.after(self.current_gui_time, self.view.board_frame.display_collecting_pawns_label)
-        self.current_gui_time += self.settings.delay_between_board_labels + 1500 # buffer
+        self.current_gui_time += self.settings.delay_between_board_labels + 1000 # buffer
         # collecting the board's pawns
         self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
-        self.current_gui_time += self.settings.random_pawn_placement_time + 1000
+        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*15 + 1000)
+        self.current_gui_time += self.settings.random_pawn_placement_time + buffer
         # checking if it's the last round
         if self.model.current_round == self.settings.num_rounds:
             self.current_gui_time += 1500

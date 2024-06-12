@@ -239,12 +239,12 @@ class SquareModel:
         self.predator_deaths.append(parent)
         self.prey_deaths.append(eaten)
         # skill levels of births are +1/-1 of parent's skill level
-        self.predator_births.append(PredatorModel(parent.skill_level+1, self.current_round+1, self.default_rounds_until_starvation))
+        self.predator_births.append(PredatorModel(parent.skill_level+1, self.current_round, self.default_rounds_until_starvation))
         # cannot go below zero - births are +0/+1 of parent's skill level if 0 - no upper limit
         if parent.skill_level == 0:
-            self.predator_births.append(PredatorModel(parent.skill_level, self.current_round+1, self.default_rounds_until_starvation))
+            self.predator_births.append(PredatorModel(parent.skill_level, self.current_round, self.default_rounds_until_starvation))
         else:
-            self.predator_births.append(PredatorModel(parent.skill_level-1, self.current_round+1, self.default_rounds_until_starvation))
+            self.predator_births.append(PredatorModel(parent.skill_level-1, self.current_round, self.default_rounds_until_starvation))
 
     def record_prey_reproducing(self, parent: 'PreyModel') -> None:
         """
@@ -254,12 +254,12 @@ class SquareModel:
         # prey dies after reproducing
         self.prey_deaths.append(parent)
         # skill levels of births are +1/-1 of parent's skill level
-        self.prey_births.append(PreyModel(parent.skill_level+1, self.current_round+1))
+        self.prey_births.append(PreyModel(parent.skill_level+1, self.current_round))
         # cannot go below zero - births are +0/+1 of parent's skill level if 0 - no upper limit
         if parent.skill_level == 0:
-            self.prey_births.append(PreyModel(parent.skill_level, self.current_round+1))
+            self.prey_births.append(PreyModel(parent.skill_level, self.current_round))
         else:
-            self.prey_births.append(PreyModel(parent.skill_level-1, self.current_round+1))
+            self.prey_births.append(PreyModel(parent.skill_level-1, self.current_round))
         # no changes are made if multiple prey objects in this square
 
     def enact_changes_to_births_and_deaths(self) -> None:
@@ -613,8 +613,18 @@ class BoardModel:
         
         for p in prey:
             sum_prey_levels += p.skill_level
+        
+        if len(predators) == 0:
+            avg_predator_level = 0.0
+        else:
+            avg_predator_level = round(sum_predators_levels/len(predators), 1)
+        
+        if len(prey) == 0:
+            avg_prey_level = 0.0
+        else:
+            avg_prey_level = round(sum_prey_levels/len(prey), 1)
         # calculating and returning average to 1 decimal place
-        self.average_levels = round(sum_predators_levels/len(predators), 1), round(sum_prey_levels/len(prey), 1)
+        self.average_levels = avg_predator_level, avg_prey_level
 
     def calculate_average_hunger_level(self) -> None:
         """
@@ -626,7 +636,10 @@ class BoardModel:
         for predator in self.survivors[0]:
             sum_hunger_levels += predator.rounds_until_starvation
         
-        self.average_hunger_level = round(sum_hunger_levels/len(self.survivors[0]), 1)
+        if len(self.survivors[0]) == 0:
+            self.average_hunger_level = 0
+        else:
+            self.average_hunger_level = round(sum_hunger_levels/len(self.survivors[0]), 1)
 
     def calculate_levels_to_populations(self) -> None:
         """
