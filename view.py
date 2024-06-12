@@ -135,7 +135,7 @@ class BoardView(tk.Frame):
         # finding the delay between each pawns placement
         random_pawn_placement_time = self.parent.settings.random_pawn_placement_time
         total_population = self.parent.settings.num_initial_predators + self.parent.settings.num_initial_prey
-        self.delay_between_pawns = random_pawn_placement_time//total_population
+        self.delay_between_pawns = random_pawn_placement_time//total_population if total_population != 0 else 0
         # grabbing a list of all animal pawns
         self.all_animal_pawns_to_change: list['PredatorView | PreyView'] = [] # type: ignore
         for square_view in self.board_visuals_1d:
@@ -257,7 +257,7 @@ class BoardView(tk.Frame):
         # for all numbers from round_delay -> 1
         if num_to_display > 0:
             # creating number label
-            new_label = ttk.Label(self, text=num_to_display, background=background_color, font=("Arial", 75, 'bold'), anchor='center')
+            new_label = ttk.Label(self, text=num_to_display, background=background_color, font=("Arial", 160, 'bold'), anchor='center')
             setattr(self, f'countdown_label_{num_to_display}', new_label)
             # displaying next countdown number
             self.countdown_label: tk.Label = getattr(self, f'countdown_label_{num_to_display}')
@@ -269,7 +269,7 @@ class BoardView(tk.Frame):
         else:
             # creating label
             self.countdown_label_go = ttk.Label(self, text='GO!', background=background_color,
-                                            font=("Arial", 75, 'bold'), anchor='center')
+                                            font=("Arial", 160, 'bold'), anchor='center')
             self.countdown_label_go.grid(column=0, row=0,
                                          columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay then hiding go label
@@ -287,7 +287,7 @@ class BoardView(tk.Frame):
         # placing labels at specific time intervals
         # creating label
         self.round_label = ttk.Label(self, text='Round 1', background=background_color,
-                                    font=("Arial", 60, 'bold'), anchor='center')
+                                    font=("Arial", 85, 'bold'), anchor='center')
         # placing round label
         self.round_label.configure(text=f'Round {round_num}')
         self.round_label.grid(column=0, row=0,
@@ -306,7 +306,7 @@ class BoardView(tk.Frame):
         background_color = self.parent.settings.countdown_background_color
         # creating label
         self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
-                                            font=("Arial", 50, 'bold'), anchor='center')
+                                            font=("Arial", 75, 'bold'), anchor='center')
         # forgetting round label
         self.round_label.grid_forget()
         # adding Scattering Pawns label
@@ -315,7 +315,21 @@ class BoardView(tk.Frame):
         # adding delay then forgetting the GO! label
         self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
 
-    def display_winner_label(self, winner: str):
+    def display_collecting_pawns_label(self):
+        """
+        Displays the collecting pawns label in the board frame
+        """
+        board_length = self.parent.settings.board_length
+        delay = self.parent.settings.delay_between_board_labels
+        background_color = self.parent.settings.countdown_background_color
+
+        self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
+                                                font=("Arial", 75, 'bold'), anchor='center')
+        self.collecting_pawns_label.grid(column=0, row=0,
+                                            columnspan=board_length, rowspan=board_length, sticky='nsew')
+        self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
+
+    def display_round_winner_label(self, winner: str):
         """
         Displays the winner of the round in the center of the board
         After winner is displayed, the collecting pawns label is displayed
@@ -333,18 +347,18 @@ class BoardView(tk.Frame):
         background_color = self.parent.settings.countdown_background_color
 
         if winner == 'predator':
-            self.predator_label = ttk.Label(self, text='Predators\n    Win!', background=background_color,
-                                        font=("Arial", 50, 'bold'), anchor='center')
+            self.predator_label = ttk.Label(self, text='Round Winner:\n    Predators!', background=background_color,
+                                        font=("Arial", 75, 'bold'), anchor='center')
             self.predator_label.grid(column=0, row=0,
                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
         elif winner == 'prey':
-            self.prey_label = ttk.Label(self, text="Prey\nWin!", background=background_color,
-                                    font=("Arial", 50, 'bold'), anchor='center')
+            self.prey_label = ttk.Label(self, text="Round Winner:\n        Prey!", background=background_color,
+                                    font=("Arial", 75, 'bold'), anchor='center')
             self.prey_label.grid(column=0, row=0,
                                     columnspan=board_length, rowspan=board_length, sticky='nsew')
         elif winner == 'tie':
-            self.tie_label = ttk.Label(self, text="Tie!", background=background_color,
-                                font=("Arial", 50, 'bold'), anchor='center')
+            self.tie_label = ttk.Label(self, text="Round Winner:\n         Tie!", background=background_color,
+                                font=("Arial", 75, 'bold'), anchor='center')
             self.tie_label.grid(column=0, row=0,
                                 columnspan=board_length, rowspan=board_length, sticky='nsew')
         else:
@@ -353,20 +367,40 @@ class BoardView(tk.Frame):
         label_displayed = getattr(self, f'{winner}_label')
         self.after(delay, lambda: label_displayed.grid_forget())
 
-    def display_collecting_pawns_label(self):
+    def display_game_winner_label(self, winner: str):
         """
-        Displays the collecting pawns label in the board frame
+        Displays the winner of the game label
+
+        Parameters:
+            - winner (str): the winner of the game - either
+                - 'predator' or
+                - 'prey' or
+                - 'tie'
+        
+        Must create labels in same function to ensure proper level order of frames
         """
         board_length = self.parent.settings.board_length
-        delay = self.parent.settings.delay_between_board_labels
+        delay = int(self.parent.settings.delay_between_board_labels * 2)
         background_color = self.parent.settings.countdown_background_color
 
-        self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
-                                                font=("Arial", 50, 'bold'), anchor='center')
-        self.collecting_pawns_label.grid(column=0, row=0,
-                                            columnspan=board_length, rowspan=board_length, sticky='nsew')
-        self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
-        
+        if winner == 'predator':
+            self.predator_label = ttk.Label(self, text='Game Winner:\n   Predators!', background=background_color,
+                                        font=("Arial", 75, 'bold'), anchor='center')
+            self.predator_label.grid(column=0, row=0,
+                                        columnspan=board_length, rowspan=board_length, sticky='nsew')
+        elif winner == 'prey':
+            self.prey_label = ttk.Label(self, text="Game Winner:\n        Prey!", background=background_color,
+                                    font=("Arial", 75, 'bold'), anchor='center')
+            self.prey_label.grid(column=0, row=0,
+                                    columnspan=board_length, rowspan=board_length, sticky='nsew')
+        elif winner == 'tie':
+            self.tie_label = ttk.Label(self, text="Game Winner:\n         Tie!", background=background_color,
+                                font=("Arial", 75, 'bold'), anchor='center')
+            self.tie_label.grid(column=0, row=0,
+                                columnspan=board_length, rowspan=board_length, sticky='nsew')
+        else:
+                raise ValueError("winner argument may only be 'predators', 'prey', or 'tie'")
+
 
 class SquareView(tk.Frame):
     """
@@ -840,8 +874,9 @@ class GameControls(tk.Frame):
         # creating a scale to the user assign a certain number of rounds for the game
         self.number_of_rounds_scale_label = ttk.Label(self, text='Number of Rounds:', background=self.background_color, font=("Arial", 16, 'bold'))
         self.number_of_rounds_scale = ttk.Scale(self, from_=1, to=30, length=150)
-        self.number_of_rounds_scale.set(5) # set at default
-        self.number_of_rounds_scale_marker = ttk.Label(self, text='5', background=self.background_color, font=("Arial", 16, 'bold'))
+        num_rounds = self.parent.parent.settings.num_rounds
+        self.number_of_rounds_scale.set(num_rounds) # set at default
+        self.number_of_rounds_scale_marker = ttk.Label(self, text=num_rounds, background=self.background_color, font=("Arial", 16, 'bold'))
     
     def place_widgets(self):
         """
@@ -1405,7 +1440,7 @@ class BoardKey(tk.Frame):
                                                      background=self.background_color)
         self.tie_canvas_description = ttk.Label(self, text=': Tie', font=("Arial", 12, 'bold'),
                                                 background=self.background_color)
-        self.winner_description = ttk.Label(self, text='  winner is determined by the trophic\nteam with the highest net pop. growth',
+        self.winner_description = ttk.Label(self, text='square winner is determined by the trophic\n    team with the highest net pop. growth',
                                             font=('Arial', 7, 'bold'), background=self.background_color)
         
     def place_widgets(self):
@@ -1442,4 +1477,4 @@ class BoardKey(tk.Frame):
         self.predator_win_canvas_description.place(relx=0.3, rely=0.72)
         self.prey_win_canvas_description.place(relx=0.3, rely=0.805)
         self.tie_canvas_description.place(relx=0.3, rely=0.89)
-        self.winner_description.place(relx=0.06, rely=0.95)
+        self.winner_description.place(relx=0.001, rely=0.95)

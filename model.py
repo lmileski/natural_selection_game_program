@@ -670,6 +670,15 @@ class BoardModel:
 
     def find_winner(self):
         """
-        Finds the winner of the game
+        Finds the winner of the game - team with the
+        largest overall net growth
         """
-        return max(self.round_wins, key=lambda k: self.round_wins[k])
+        predator_pop_change = self.total_populations[0] - self.settings.num_initial_predators
+        prey_pop_change = self.total_populations[1] - self.settings.num_initial_prey
+
+        if predator_pop_change > prey_pop_change:
+            return 'predator'
+        elif prey_pop_change > predator_pop_change:
+            return 'prey'
+        else:
+            return 'tie'

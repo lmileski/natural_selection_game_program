@@ -65,7 +65,7 @@
     },
 
     "change_of_rounds": {
-        "num_rounds": 5,
+        "num_rounds": 3,
         "pause_between_rounds": "on",
         "delay_between_rounds": 5,
         "random_pawn_placement_time": 1500,

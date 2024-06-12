@@ -225,9 +225,9 @@ class WidgetCommands:
         # adding buffer
         buffer = int(self.model.total_populations[0] + self.model.total_populations[1]*20 + 1500)
         self.current_gui_time += buffer
-        # displaying the winner
-        self.view.after(self.current_gui_time, self.view.board_frame.display_winner_label, self.model.round_winner)
-        self.current_gui_time += self.settings.delay_between_board_labels # used for winner label
+        # displaying the round winner
+        self.view.after(self.current_gui_time, self.view.board_frame.display_round_winner_label, self.model.round_winner)
+        self.current_gui_time += self.settings.delay_between_board_labels * 2 # used for winner label
         # displaying the 'finish round' button if the user has pause between rounds turned on
         if self.settings.pause_between_rounds == 'on':
             self.current_gui_time += 1500 # adding buffer
@@ -253,7 +253,7 @@ class WidgetCommands:
         self.current_gui_time += self.settings.delay_between_board_labels + 1000 # buffer
         # collecting the board's pawns
         self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
-        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*15 + 1000)
+        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*20 + 500)
         self.current_gui_time += self.settings.random_pawn_placement_time + buffer
         # checking if it's the last round
         if self.model.current_round == self.settings.num_rounds:
@@ -263,7 +263,7 @@ class WidgetCommands:
             # multiplying the delay by 3 then reverting back
             #previous_delay = self.settings.delay_between_board_labels
             #self.settings.delay_between_board_labels *= 3
-            self.view.after(self.current_gui_time, self.view.board_frame.display_winner_label, winner)
+            self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, winner)
             #self.settings.delay_between_board_labels = previous_delay
         else:
             # clearing the data from the model's previous squares and updating round number
@@ -562,7 +562,7 @@ class WidgetCommands:
             self.configurations_frame.custom_round_delay_scale_marker.grid_forget()
 
             # updating settings with default round delay
-            self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', 'off'))
+            self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', 'on'))
             self.settings.update_settings(('change_of_rounds', 'delay_between_rounds',
                                            self.default_settings['change_of_rounds']['delay_between_rounds']))
             # updating scale views and markers to default
@@ -698,9 +698,10 @@ class WidgetCommands:
             self.configurations_frame.prey_level_scale_marker.grid_forget()
 
             # restoring all default animal starting stats and
-            # updating scales and scale markers to their default
+            # updating scales and scale markers to their default set points and max
             self.predator_population_scale_command(self.default_settings['predator']['num_initial_predators'])
             self.configurations_frame.custom_predator_population_scale.set(self.settings.num_initial_predators)
+            self.configurations_frame.custom_predator_population_scale.configure(to=(self.settings.board_length**2)*4)
 
             self.predator_level_scale_command(self.default_settings['predator']['predator_starting_level'])
             self.configurations_frame.custom_predator_level_scale.set(self.settings.predator_starting_level)
@@ -710,6 +711,7 @@ class WidgetCommands:
 
             self.prey_population_scale_command(self.default_settings['prey']['num_initial_prey'])
             self.configurations_frame.custom_prey_population_scale.set(self.settings.num_initial_prey)
+            self.configurations_frame.custom_prey_population_scale.configure(to=(self.settings.board_length**2)*4)
 
             self.prey_level_scale_command(self.default_settings['prey']['prey_starting_level'])
             self.configurations_frame.custom_prey_level_scale.set(self.settings.prey_starting_level)
