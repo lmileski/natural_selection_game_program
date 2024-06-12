@@ -162,7 +162,7 @@ class WidgetCommands:
         # changing game control buttons shown
         self.change_game_buttons_shown('start')
         # displaying scatter pawns label and doing so
-        self.scatter_pawns()
+        self.scatter_pawns(start_of_game=True)
 
 
     # mainloop for the game's rounds - performed either manually or automatically (depends on user configurations)
@@ -198,8 +198,8 @@ class WidgetCommands:
             self.current_gui_time = 0
         else: # starts the round automatically if 'off'
             self.current_gui_time += self.settings.delay_between_rounds * 1000 # adding customized buffer - in seconds
-
             self.view.after(self.current_gui_time, self.start_round_button_command)
+            self.current_gui_time = 500
 
     def start_round_button_command(self) -> None:
         """
@@ -226,10 +226,9 @@ class WidgetCommands:
         self.current_gui_time += 900
         # displaying the winner
         self.view.after(self.current_gui_time, self.view.board_frame.display_winner_label, self.model.round_winner)
-        # adding buffer
-        self.current_gui_time += 1500
         # displaying the 'finish round' button if the user has pause between rounds turned on
         if self.settings.pause_between_rounds == 'on':
+            self.current_gui_time += 1500 # adding buffer
             self.view.after(self.current_gui_time, lambda:
                 self.view.left_menu_frame.game_controls.finish_round_button.grid(**self.view.left_menu_frame.game_controls.finish_round_button_grid_info))
             self.current_gui_time = 0
@@ -237,6 +236,7 @@ class WidgetCommands:
             # adding configured delay between rounds buffer - setting is 1 digit representing seconds
             self.current_gui_time += self.settings.delay_between_rounds * 1000
             self.view.after(self.current_gui_time, self.finish_round_button_command)
+            self.current_gui_time = 500
     
     def finish_round_button_command(self) -> None:
         """
@@ -252,10 +252,9 @@ class WidgetCommands:
         # collecting the board's pawns
         self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
         self.current_gui_time += self.settings.random_pawn_placement_time + 1000
-        # clearing the data from the model's previous squares and updating round number
-        self.model.clear_board()
         # checking if it's the last round
         if self.model.current_round == self.settings.num_rounds:
+            self.current_gui_time += 1500
             # displaying the winner - team with most round wins
             winner = self.model.find_winner()
             # multiplying the delay by 3 then reverting back
@@ -264,7 +263,10 @@ class WidgetCommands:
             self.view.after(self.current_gui_time, self.view.board_frame.display_winner_label, winner)
             #self.settings.delay_between_board_labels = previous_delay
         else:
+            # clearing the data from the model's previous squares and updating round number
+            self.model.clear_board()
             self.view.after(self.current_gui_time, self.scatter_pawns)
+            self.current_gui_time = 500
 
 
 

@@ -425,8 +425,8 @@ class BoardModel:
             num_pieces = 1
             while curr_level <= 8:
                 # adding certain number of animals at respective levels
-                predators = [PredatorModel(curr_level, 1, self.settings.rounds_until_starvation) for _ in range(num_pieces)]
-                prey = [PreyModel(curr_level, 1) for _ in range(num_pieces)]
+                predators = [PredatorModel(curr_level, 0, self.settings.rounds_until_starvation) for _ in range(num_pieces)]
+                prey = [PreyModel(curr_level, 0) for _ in range(num_pieces)]
                 animals[0].extend(predators)
                 animals[1].extend(prey)
                 # conditions for loop's proper distribution of populations - levels
