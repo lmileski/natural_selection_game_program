@@ -130,14 +130,11 @@ class WidgetCommands:
     Methods needed for the visual/logic changes in the program when a widget event occurs
     """
 
-    scheduled_tasks: list[int | str]
-
     def __init__(self, controller: Controller):
         """
         Sets up model, view, and controller for quick access
         """
         self.controller = controller
-        self.scheduled_tasks = [] # for storing scheduled visuals so that they may be cancelled at anytime
         # for ease of access
         self.view = self.controller.view
         self.game_controls_frame = self.view.left_menu_frame.game_controls
@@ -175,30 +172,35 @@ class WidgetCommands:
         # integrating views and models
         self.controller.assign_models_to_views(True)
         # displaying the round and scattering pawns labels
-        self.view.after(
+        display_round_label_task = self.view.after(
             self.current_gui_time, lambda: self.view.board_frame.display_round_label(self.model.current_round))
-        # updating the round
-        self.view.after(
+        self.view.board_frame.scheduled_tasks.append(display_round_label_task)
+        update_round_label_task = self.view.after(
                 self.current_gui_time, lambda: self.view.right_menu_frame.scoreboard.round_label.configure(text=f'Round {self.model.current_round}'))
+        self.view.board_frame.scheduled_tasks.append(update_round_label_task)
         
         self.current_gui_time += self.settings.delay_between_board_labels
 
-        self.view.after(self.current_gui_time, self.view.board_frame.display_scattering_pawns_label)
+        display_scattering_pawns_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_scattering_pawns_label)
+        self.view.board_frame.scheduled_tasks.append(display_scattering_pawns_label_task)
 
         self.current_gui_time += self.settings.delay_between_board_labels + 500 # buffer
         # randomly drawing animals on the board
-        self.view.after(self.current_gui_time, self.view.board_frame.randomly_draw_all_animals)
+        randomly_draw_all_animals_task = self.view.after(self.current_gui_time, self.view.board_frame.randomly_draw_all_animals)
+        self.view.board_frame.scheduled_tasks.append(randomly_draw_all_animals_task)
         self.current_gui_time += self.settings.random_pawn_placement_time + 1500 # buffer
         # displaying the 'start round' button if the user has pause between rounds on
         if self.settings.pause_between_rounds == 'on': # only runs on button press
             # displaying the round start button
-            self.view.after(self.current_gui_time, lambda:
+            display_start_round_button_task = self.view.after(self.current_gui_time, lambda:
                 self.view.left_menu_frame.game_controls.start_round_button.grid(**self.view.left_menu_frame.game_controls.start_round_button_grid_info))
+            self.view.board_frame.scheduled_tasks.append(display_start_round_button_task)
             # resetting gui time
             self.current_gui_time = 0
         else: # starts the round automatically if 'off'
             self.current_gui_time += self.settings.delay_between_rounds * 1000 # adding customized buffer - in seconds
-            self.view.after(self.current_gui_time, self.start_round_button_command)
+            start_round_button_command_task = self.view.after(self.current_gui_time, self.start_round_button_command)
+            self.view.board_frame.scheduled_tasks.append(start_round_button_command_task)
             self.current_gui_time = 500
 
     def start_round_button_command(self) -> None:
@@ -206,10 +208,12 @@ class WidgetCommands:
         Handles events when the user clicks the Start Round button
         """
         # hiding the start round button again
-        self.view.after(self.current_gui_time, self.view.left_menu_frame.game_controls.start_round_button.grid_forget)
+        start_round_button_hide_task = self.view.after(self.current_gui_time, self.view.left_menu_frame.game_controls.start_round_button.grid_forget)
+        self.view.board_frame.scheduled_tasks.append(start_round_button_hide_task)
         # displaying countdown from 3 after gui has been fully updated with all animals
-        self.view.after(self.current_gui_time,
+        display_game_countdown_task = self.view.after(self.current_gui_time,
                                     self.view.board_frame.display_game_countdown, 3)
+        self.view.board_frame.scheduled_tasks.append(display_game_countdown_task)
         # adding to current gui time - GO label is 1250 milliseconds, 2000 is the buffer
         self.current_gui_time += (self.settings.delay_between_board_labels*2)//3 + int(self.settings.delay_between_board_labels*1.5) + 2000
         # calculating the results of the round
@@ -217,27 +221,32 @@ class WidgetCommands:
         # assigning the resultant data to the board and square view objects
         self.controller.assign_models_to_views()
         # displaying the rounds results feature
-        self.view.board_frame.after(self.current_gui_time, self.view.board_frame.diagonal_matrix_draw_all_results)
+        diagonal_matrix_draw_all_results_task = self.view.board_frame.after(self.current_gui_time, self.view.board_frame.diagonal_matrix_draw_all_results)
+        self.view.board_frame.scheduled_tasks.append(diagonal_matrix_draw_all_results_task)
         # adding to current gui time - multipying by the number of diagonal sections
         self.current_gui_time += self.settings.delay_between_square_results_labels*(2*self.settings.board_length-1)
         # updating the scoreboard
-        self.view.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.update_scoreboard)
+        update_scoreboard_task = self.view.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.update_scoreboard)
+        self.view.board_frame.scheduled_tasks.append(update_scoreboard_task)
         # adding buffer
         buffer = int(self.model.total_populations[0] + self.model.total_populations[1]*20 + 1500)
         self.current_gui_time += buffer
         # displaying the round winner
-        self.view.after(self.current_gui_time, self.view.board_frame.display_round_winner_label, self.model.round_winner)
+        display_round_winner_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_round_winner_label, self.model.round_winner)
+        self.view.board_frame.scheduled_tasks.append(display_round_winner_label_task)
         self.current_gui_time += self.settings.delay_between_board_labels * 2 # used for winner label
         # displaying the 'finish round' button if the user has pause between rounds turned on
         if self.settings.pause_between_rounds == 'on':
             self.current_gui_time += 1000 # adding buffer
-            self.view.after(self.current_gui_time, lambda:
+            display_finish_round_button_task = self.view.after(self.current_gui_time, lambda:
                 self.view.left_menu_frame.game_controls.finish_round_button.grid(**self.view.left_menu_frame.game_controls.finish_round_button_grid_info))
+            self.view.board_frame.scheduled_tasks.append(display_finish_round_button_task)
             self.current_gui_time = 0
         else:
             # adding configured delay between rounds buffer - setting is 1 digit representing seconds
             self.current_gui_time += self.settings.delay_between_rounds * 1000
-            self.view.after(self.current_gui_time, self.finish_round_button_command)
+            finish_round_button_command_task = self.view.after(self.current_gui_time, self.finish_round_button_command)
+            self.view.board_frame.scheduled_tasks.append(finish_round_button_command_task)
             self.current_gui_time = 500
     
     def finish_round_button_command(self) -> None:
@@ -245,26 +254,36 @@ class WidgetCommands:
         Handles events when the user clicks the Finish Round button
         """
         # hiding the finish round button
-        self.view.after(self.current_gui_time, self.view.left_menu_frame.game_controls.finish_round_button.grid_forget)
+        finish_round_button_hide_task = self.view.after(self.current_gui_time, self.view.left_menu_frame.game_controls.finish_round_button.grid_forget)
+        self.view.board_frame.scheduled_tasks.append(finish_round_button_hide_task)
         # uncoloring the scoreboard's marker colors
-        self.view.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.uncolor_scoreboard_text)
+        uncolor_scoreboard_text_task = self.view.after(self.current_gui_time, self.view.right_menu_frame.scoreboard.uncolor_scoreboard_text)
+        self.view.board_frame.scheduled_tasks.append(uncolor_scoreboard_text_task)
         # displaying the collecting pawns label
-        self.view.after(self.current_gui_time, self.view.board_frame.display_collecting_pawns_label)
+        display_collecting_pawns_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_collecting_pawns_label)
+        self.view.board_frame.scheduled_tasks.append(display_collecting_pawns_label_task)
         self.current_gui_time += self.settings.delay_between_board_labels + 1000 # buffer
         # collecting the board's pawns
-        self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
-        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*20 + 300)
+        randomly_collect_all_animals_task = self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
+        self.view.board_frame.scheduled_tasks.append(randomly_collect_all_animals_task)
+        buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*20 + 1000)
         self.current_gui_time += self.settings.random_pawn_placement_time + buffer
         # checking if it's the last round
         if self.model.current_round == self.settings.num_rounds:
             self.current_gui_time += 1500
             # displaying the winner - team with highest net pop. change
             self.winner = self.model.find_winner()
-            self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, self.winner, 'show')
+            display_game_winner_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, self.winner, 'show')
+            self.view.board_frame.scheduled_tasks.append(display_game_winner_label_task)
         else:
             # clearing the data from the model's previous squares and updating round number
             self.model.clear_board()
-            self.view.after(self.current_gui_time, self.scatter_pawns)
+            # clearing all old scheduled tasks and labels - already over and done
+            self.view.after(self.current_gui_time, lambda: self.view.board_frame.scheduled_tasks.clear())
+            self.view.after(self.current_gui_time, lambda: self.view.board_frame.scheduled_labels.clear())
+            # scheduling next round
+            scatter_pawns_task = self.view.after(self.current_gui_time, self.scatter_pawns)
+            self.view.board_frame.scheduled_tasks.append(scatter_pawns_task)
             self.current_gui_time = 500
 
 
@@ -275,8 +294,15 @@ class WidgetCommands:
         """
         # deleting the old model
         del self.model
-        # removing the winner label from board
-        self.view.board_frame.display_game_winner_label(self.winner, 'destroy')
+        # canceling all active visual tasks
+        while self.view.board_frame.scheduled_tasks:
+            task = self.view.board_frame.scheduled_tasks.pop()
+            self.view.after_cancel(task)
+        # removing any existent labels
+        for label in self.view.board_frame.scheduled_labels:
+            if label.winfo_exists():
+                label.destroy()
+        self.view.board_frame.scheduled_labels.clear()
         # resetting the scoreboard
         self.view.right_menu_frame.scoreboard.reset_scoreboard_text()
         # unlocking the user's configuration settings
@@ -368,6 +394,7 @@ class WidgetCommands:
 
             self.game_controls_frame.reset_game_button.grid_forget()
             self.game_controls_frame.autofinish_game_button.grid_forget()
+            self.game_controls_frame.start_round_button.grid_forget()
             self.game_controls_frame.finish_round_button.grid_forget()
             
         else:

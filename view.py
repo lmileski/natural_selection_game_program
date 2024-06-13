@@ -62,12 +62,17 @@ class BoardView(tk.Frame):
     board_visuals_1d: list['SquareView'] # attributed when the draw board method is called
     board_visuals_diagonal_matrix: list[list['SquareView']] # attributed when the draw board method is called
     animal_pawns_to_erase: list['PredatorView | PreyView']
+    scheduled_tasks: list[str] # for storing scheduled visuals so that they may be cancelled at anytime
+    scheduled_labels: list['ttk.Label | tk.Canvas | PredatorView | PreyView'] # same but for labels
 
     def __init__(self, parent: View):
         # setting parent frame for settings retrieval
         self.parent = parent
         self.board_visuals_1d = []
         self.animal_pawns_to_erase = []
+        # for reset game button
+        self.scheduled_tasks = []
+        self.scheduled_labels = []
         # assigning its own frame to the parent and setting its border
         super().__init__(parent, bd=3, relief='solid')
         # drawing the board (without animals)
@@ -141,6 +146,7 @@ class BoardView(tk.Frame):
         for square_view in self.board_visuals_1d:
             for animal_pawn in square_view.square_animal_views:
                 self.all_animal_pawns_to_change.append(animal_pawn)
+                self.scheduled_labels.append(animal_pawn)
 
         # randomly drawing all animals 1 by 1 at start of game
         self.place_pawn()
@@ -150,11 +156,18 @@ class BoardView(tk.Frame):
         Erases all animal pieces on the board randomly
         """
         if self.animal_pawns_to_erase:
+            # removing last pawn if it exists
+            try:
+                self.scheduled_tasks.remove(self.randomly_collect_all_animals_task)
+            except:
+                pass
+
             random_pawn = random.choice(self.animal_pawns_to_erase)
             random_pawn.destroy()
             self.animal_pawns_to_erase.remove(random_pawn)
             # adding delay to placement
-            self.after(self.delay_between_pawns, self.randomly_collect_all_animals)
+            self.randomly_collect_all_animals_task = self.after(self.delay_between_pawns, self.randomly_collect_all_animals)
+            self.scheduled_tasks.append(self.randomly_collect_all_animals_task)
 
     def place_pawn(self):
         """
@@ -162,11 +175,18 @@ class BoardView(tk.Frame):
         to be called again after the delay_between_pawn_placement
         """
         if self.all_animal_pawns_to_change:
+            # removing last pawn task if it exists
+            try:
+                self.scheduled_tasks.remove(self.place_pawn_task)
+            except:
+                pass
+                
             random_pawn = random.choice(self.all_animal_pawns_to_change)
             random_pawn.draw_piece()
             self.all_animal_pawns_to_change.remove(random_pawn)
             # adding delay to placement
-            self.after(self.delay_between_pawns, self.place_pawn)
+            self.place_pawn_task = self.after(self.delay_between_pawns, self.place_pawn)
+            self.scheduled_tasks.append(self.place_pawn_task)
     
     def diagonal_matrix_draw_all_results(self):
         """
@@ -187,6 +207,11 @@ class BoardView(tk.Frame):
         (Draws either an 'X' or '+' on all board tiles from top left to bottom right)
         Waits delay_between_square_results_labels until the next call of itself
         """
+        # removing this task if it already exists
+        try:
+            self.scheduled_tasks.remove(self.draw_section_results_task) # type: ignore
+        except:
+            pass
         if index < self.num_diagonal_sections:
             # making last diagonal section square result symbols disappear/destroy
             for previous_square_winner_symbol in self.previous_square_winner_symbols:
@@ -204,9 +229,11 @@ class BoardView(tk.Frame):
                 # drawing result label
                 square_view.display_square_winner()
                 self.previous_square_winner_symbols.append(square_view.square_winner_canvas)
+                self.scheduled_labels.append(square_view.square_winner_canvas)
 
             # adding delay to square diagonal sections being displayed
-            self.after(self.result_delay, self.draw_section_results, index+1)
+            self.draw_section_results_task = self.after(self.result_delay, self.draw_section_results, index+1)
+            self.scheduled_tasks.append(self.draw_section_results_task)
         else:
             # forgetting any square symbols left (bottom right square)
             board_length = self.parent.settings.board_length
@@ -258,22 +285,26 @@ class BoardView(tk.Frame):
         if num_to_display > 0:
             # creating number label
             new_label = ttk.Label(self, text=num_to_display, background=background_color, font=("Arial", 160, 'bold'), anchor='center')
+            self.scheduled_labels.append(new_label)
             setattr(self, f'countdown_label_{num_to_display}', new_label)
             # displaying next countdown number
             self.countdown_label: tk.Label = getattr(self, f'countdown_label_{num_to_display}')
             self.countdown_label.grid(column=0, row=0, columnspan=board_length, rowspan=board_length, sticky='nsew')
             # displaying the next countdown number after a half-second delay
-            self.after(delay_of_number, self.display_game_countdown, num_to_display-1)
+            game_countdown_task = self.after(delay_of_number, self.display_game_countdown, num_to_display-1)
+            self.scheduled_tasks.append(game_countdown_task)
 
         # for displaying GO!
         else:
             # creating label
             self.countdown_label_go = ttk.Label(self, text='GO!', background=background_color,
                                             font=("Arial", 160, 'bold'), anchor='center')
+            self.scheduled_labels.append(self.countdown_label_go)
             self.countdown_label_go.grid(column=0, row=0,
                                          columnspan=board_length, rowspan=board_length, sticky='nsew')
             # adding delay then hiding go label
-            self.after(delay_of_go, lambda: self.countdown_label_go.grid_forget())
+            go_task = self.after(delay_of_go, lambda: self.countdown_label_go.grid_forget())
+            self.scheduled_tasks.append(go_task)
 
     def display_round_label(self, round_num: int):
         """
@@ -288,12 +319,14 @@ class BoardView(tk.Frame):
         # creating label
         self.round_label = ttk.Label(self, text='Round 1', background=background_color,
                                     font=("Arial", 85, 'bold'), anchor='center')
+        self.scheduled_labels.append(self.round_label)
         # placing round label
         self.round_label.configure(text=f'Round {round_num}')
         self.round_label.grid(column=0, row=0,
                                 columnspan=board_length, rowspan=board_length, sticky='nsew')
         # adding delay
-        self.after(delay, lambda: self.round_label.grid_forget())       
+        round_label_task = self.after(delay, lambda: self.round_label.grid_forget())
+        self.scheduled_tasks.append(round_label_task)    
     
     def display_scattering_pawns_label(self):
         """
@@ -307,13 +340,15 @@ class BoardView(tk.Frame):
         # creating label
         self.scattering_pawns_label = ttk.Label(self, text='Scattering\n   Pawns', background=background_color,
                                             font=("Arial", 75, 'bold'), anchor='center')
+        self.scheduled_labels.append(self.scattering_pawns_label)
         # forgetting round label
         self.round_label.grid_forget()
         # adding Scattering Pawns label
         self.scattering_pawns_label.grid(column=0, row=0,
                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
         # adding delay then forgetting the GO! label
-        self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
+        scattering_pawns_task = self.after(delay, lambda: self.scattering_pawns_label.grid_forget())
+        self.scheduled_tasks.append(scattering_pawns_task)
 
     def display_collecting_pawns_label(self):
         """
@@ -325,9 +360,11 @@ class BoardView(tk.Frame):
 
         self.collecting_pawns_label = ttk.Label(self, text='Collecting\n   Pawns', background=background_color,
                                                 font=("Arial", 75, 'bold'), anchor='center')
+        self.scheduled_labels.append(self.collecting_pawns_label)
         self.collecting_pawns_label.grid(column=0, row=0,
                                             columnspan=board_length, rowspan=board_length, sticky='nsew')
-        self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
+        collecting_pawns_task = self.after(delay, lambda: self.collecting_pawns_label.grid_forget())
+        self.scheduled_tasks.append(collecting_pawns_task)
 
     def display_round_winner_label(self, winner: str):
         """
@@ -365,7 +402,9 @@ class BoardView(tk.Frame):
                 raise ValueError("winner argument may only be 'predators', 'prey', or 'tie'")
         
         label_displayed = getattr(self, f'{winner}_label')
-        self.after(delay, lambda: label_displayed.grid_forget())
+        self.scheduled_labels.append(label_displayed)
+        winner_label_task = self.after(delay, lambda: label_displayed.grid_forget())
+        self.scheduled_tasks.append(winner_label_task)
 
     def display_game_winner_label(self, winner: str, method: str):
         """
@@ -532,6 +571,7 @@ class SquareView(tk.Frame):
         """
         for animal_view in self.square_animal_views:
             self.parent.animal_pawns_to_erase.append(animal_view)
+            self.parent.scheduled_labels.append(animal_view)
             animal_view.draw_piece()
             animal_view.place(relx=animal_view.relative_placement[0], rely=animal_view.relative_placement[1])
 
