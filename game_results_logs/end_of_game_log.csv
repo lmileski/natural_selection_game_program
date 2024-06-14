@@ -1,11 +1,9 @@
 Ending Predator Level,Ending Respective Predator Population,Ending Prey Level,Ending Respective Prey Population
 0,0,0,0
-1,0,1,1
-2,1,2,0
-3,3,3,4
-4,2,4,1
-5,7,5,3
-6,2,6,4
-7,4,7,2
-8,1,8,0
-9,1,9,1
+1,0,1,0
+2,0,2,0
+3,0,3,0
+4,0,4,0
+5,52,5,0
+6,2,6,0
+7,52,7,0

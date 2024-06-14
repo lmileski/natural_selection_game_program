@@ -22,12 +22,11 @@ View class frame heirarchy:
 """
 
 import webbrowser
-import os
 import tkinter as tk
 from tkinter import ttk
 import random
 from model import CurrentSettings, SquareModel, PredatorModel, PreyModel
-from model_helpers import open_file
+from typing import Callable
 
 
 class View(tk.Tk):

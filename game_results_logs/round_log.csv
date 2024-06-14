@@ -1,3 +1,5 @@
 Round,Predator Population,Prey Population,Average Predator Level,Average Prey Level,Animal Team Winner
-0,16,16,5.0,5.0,n/a
-1,21,16,5.3,4.9,predator
+0,256,256,5.0,5.0,n/a
+1,256,54,5.8,5.0,predator
+2,256,0,6.0,0.0,predator
+3,106,0,6.0,0.0,prey

@@ -77,6 +77,7 @@ class CurrentSettings:
     # change_of_rounds
     num_rounds: int
     pause_between_rounds: str
+    autofinish_game: str
     delay_between_rounds: int
     random_pawn_placement_time: int
     delay_between_board_labels: int
