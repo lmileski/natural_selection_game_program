@@ -103,13 +103,13 @@ def record_round_data(round_data: tuple[int, tuple[int, int], tuple[float, float
                 - (0) current round
                 - (1) total populations of predators and prey
                 - (2) average skill levels of predators and prey
-                - (3) animal team that won the round (either 'predators', 'prey', or 'tie')
+                - (3) animal team that won the round (either 'predators', 'prey', 'tie', or 'n/a')
             
             - round_log_file='game_results_logs/round_log.csv': the filename to record the round's results
         """
         # recording round's data
         df = pd.DataFrame({
-            'Round': [round_data[0]-1], # starting data is marked as round 0, end of round 1 is marked as round 1, etc.
+            'Round': [round_data[0]], # starting data is marked as round 0, end of round 1 is marked as round 1, etc.
             'Predator Population': [round_data[1][0]],
             'Prey Population': [round_data[1][1]],
             'Average Predator Level': [round_data[2][0]],
@@ -118,7 +118,7 @@ def record_round_data(round_data: tuple[int, tuple[int, int], tuple[float, float
         })
 
         # only adding column headings on first round
-        if round_data[0] == 1:
+        if round_data[0] == 0:
             open(round_log_file, 'w').close() # clearing file if its the first round
             heading = True
         else:
@@ -187,6 +187,16 @@ def record_start_and_end_data(skill_levels_to_populations: tuple[dict[int, int],
     else:
         df.to_csv('game_results_logs/end_of_game_log.csv', mode='w', index=False)
 
+def transfer_round_logs(completed_game_round_log = 'game_results_logs/round_log.csv',
+                        previous_game_round_log = 'game_results_logs/last_game_round_log.csv') -> None:
+    """
+    Transfers the current completed game's log of round data to the previous game's
+    round log file
+    """
+    with open(completed_game_round_log) as f_from, open(previous_game_round_log, 'w', newline='') as f_to:
+        data = f_from.read()
+        f_to.write(data)
+
 def get_new_filename(filename):
     """
     Finds a proper suffix for the excel file name depending on number of
@@ -201,7 +211,7 @@ def get_new_filename(filename):
             i += 1
         return f"{base}({i}){extension}"
 
-def export_game_data_to_excel(round_data_filename='game_results_logs/round_log.csv',
+def export_game_data_to_excel(round_data_filename='game_results_logs/last_game_round_log.csv',
                               start_of_game_data_filename='game_results_logs/start_of_game_log.csv',
                               end_of_game_data_filename='game_results_logs/end_of_game_log.csv',
                               game_configurations_filename='game_settings_logs/user_configurations.json') -> None:
@@ -257,7 +267,6 @@ def export_game_data_to_excel(round_data_filename='game_results_logs/round_log.c
     open_file(filename)
 
     # export_game_data_to_excel() 
-
 
 def open_file(path: str):
     """

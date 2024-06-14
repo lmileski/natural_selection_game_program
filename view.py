@@ -428,6 +428,7 @@ class BoardView(tk.Frame):
             if method == 'show':
                 self.predator_label = ttk.Label(self, text='Game Winner:\n   Predators!', background=background_color,
                                             font=("Arial", 75, 'bold'), anchor='center')
+                self.scheduled_labels.append(self.predator_label)
                 self.predator_label.grid(column=0, row=0,
                                         columnspan=board_length, rowspan=board_length, sticky='nsew')
             elif method == 'destroy':
@@ -436,6 +437,7 @@ class BoardView(tk.Frame):
             if method == 'show':
                 self.prey_label = ttk.Label(self, text="Game Winner:\n        Prey!", background=background_color,
                                         font=("Arial", 75, 'bold'), anchor='center')
+                self.scheduled_labels.append(self.prey_label)
                 self.prey_label.grid(column=0, row=0,
                                     columnspan=board_length, rowspan=board_length, sticky='nsew')
             elif method == 'destroy':
@@ -444,6 +446,7 @@ class BoardView(tk.Frame):
             if method == 'show':
                 self.tie_label = ttk.Label(self, text="Game Winner:\n         Tie!", background=background_color,
                                     font=("Arial", 75, 'bold'), anchor='center')
+                self.scheduled_labels.append(self.tie_label)
                 self.tie_label.grid(column=0, row=0,
                                 columnspan=board_length, rowspan=board_length, sticky='nsew')
             elif method == 'destroy':

@@ -370,6 +370,7 @@ class BoardModel:
     settings: 'CurrentSettings'
     survivors: tuple[list['PredatorModel'], list['PreyModel']]
     round_winner: str
+    game_winner: str
     round_wins: dict[str, int]
     board: list[list['SquareModel']]
     previous_total_populations: tuple[int, int]
@@ -394,6 +395,7 @@ class BoardModel:
         # creating starting animals - either default or customized by user
         self.survivors = self.create_animals()
         # finding the starting stats
+        self.calculate_levels_to_populations()
         self.calculate_total_populations()
         self.calculate_average_levels()
         self.calculate_average_hunger_level()
@@ -677,8 +679,8 @@ class BoardModel:
         prey_pop_change = self.total_populations[1] - self.settings.num_initial_prey
 
         if predator_pop_change > prey_pop_change:
-            return 'predator'
+            self.game_winner = 'predator'
         elif prey_pop_change > predator_pop_change:
-            return 'prey'
+            self.game_winner = 'prey'
         else:
-            return 'tie'
+            self.game_winner = 'tie'

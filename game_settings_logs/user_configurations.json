@@ -5,12 +5,11 @@
         "rounds_until_starvation": 2,
         "min_rounds_until_starvation": 1,
         "max_rounds_until_starvation": 10,
-        "one_round_until_starvation_color": "red",
+        "one_round_until_starvation_color": "tomato",
         "two_rounds_until_starvation_color": "orange",
         "three_or_more_rounds_until_starvation_color": "yellow",
         "predator_symbol": "square",
-        "predator_outline_color": "dark slate blue",
-        "predator_background_color": "medium slate blue"
+        "predator_outline_color": "firebrick"
     },
     "prey": {
         "num_initial_prey": 16,
@@ -27,34 +26,34 @@
     "left_menu": {
         "widget_background_color": "slate gray",
         "scale_slider_color": "dim gray",
-        "left_menu_background_color": "slate gray",
-        "game_controls_background_color": "cadet blue",
+        "left_menu_background_color": "gainsboro",
+        "game_controls_background_color": "light steel blue",
         "game_controls_text_label_color": "black",
-        "customize_settings_background_color": "cadet blue",
+        "customize_settings_background_color": "light steel blue",
         "customize_settings_text_label_color": "black"
     },
     "right_menu": {
-        "right_menu_background_color": "slate gray",
-        "scoreboard_background_color": "cadet blue",
+        "right_menu_background_color": "gainsboro",
+        "scoreboard_background_color": "light steel blue",
         "scoreboard_text_label_color": "black",
-        "boardkey_background_color": "cadet blue",
+        "boardkey_background_color": "light steel blue",
         "boardkey_text_label_color": "black"
     },
     "board": {
         "customized_starting_animals": "off",
-        "board_length": 6,
+        "board_length": 5,
         "min_board_length": 1,
         "max_board_length": 8,
-        "checkered_color1": "gray",
-        "checkered_color2": "beige",
-        "grid_line_color": "black"
+        "checkered_color1": "navajowhite4",
+        "checkered_color2": "mint cream"
     },
     "change_of_rounds": {
-        "num_rounds": 5,
+        "num_rounds": 1,
         "pause_between_rounds": "on",
-        "delay_between_rounds": 3,
-        "delay_between_random_pawn_placement": 0.3,
-        "delay_between_countdown_labels": 1,
-        "delay_between_square_results_labels": 0.5
+        "delay_between_rounds": 5,
+        "random_pawn_placement_time": 1500,
+        "delay_between_board_labels": 800,
+        "delay_between_square_results_labels": 400,
+        "countdown_background_color": "MediumPurple3"
     }
 }

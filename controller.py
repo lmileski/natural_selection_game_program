@@ -9,6 +9,7 @@ Author: Luke Mileski (lmileski@sandiego.edu)
 from tkinter import Event
 from model import BoardModel, CurrentSettings, SquareModel
 from view import View
+import model_helpers
 
 
 class Controller:
@@ -75,6 +76,9 @@ class Controller:
 
         self.view.left_menu_frame.game_controls.reset_game_button['command'] = \
         widget_command_manager.reset_game_button_command
+
+        self.view.left_menu_frame.game_controls.autofinish_game_button['command'] = \
+        widget_command_manager.autofinish_game_button_command
 
         self.view.left_menu_frame.game_controls.start_round_button['command'] = \
         widget_command_manager.start_round_button_command
@@ -150,6 +154,13 @@ class WidgetCommands:
         # setting up the model upon its initialization depending on the user's configurations
         self.controller.model = BoardModel(self.settings)
         self.model = self.controller.model
+        # recording the starting game data and starting round 0 data
+        model_helpers.record_start_and_end_data(self.model.levels_to_populations, True)
+        model_helpers.record_round_data(
+            (self.model.current_round, self.model.total_populations, self.model.average_levels, 'n/a')
+        )
+        # recording the user's game configurations
+        self.settings.write_game_settings()
         # need to keep track of gui update times for visual to be in appropriate order
         self.current_gui_time = 0
         # increasing round number
@@ -266,21 +277,40 @@ class WidgetCommands:
         # collecting the board's pawns
         randomly_collect_all_animals_task = self.view.after(self.current_gui_time, self.view.board_frame.randomly_collect_all_animals)
         self.view.board_frame.scheduled_tasks.append(randomly_collect_all_animals_task)
+        # recording the round's data
+        record_round_task = self.view.after(self.current_gui_time, lambda: model_helpers.record_round_data(
+            (self.model.current_round, self.model.total_populations, self.model.average_levels, self.model.round_winner)
+            ))
+        self.view.board_frame.scheduled_tasks.append(record_round_task)
+        # adding delay
         buffer = int((self.model.total_populations[0] + self.model.total_populations[1])*20 + 1000)
         self.current_gui_time += self.settings.random_pawn_placement_time + buffer
         # checking if it's the last round
         if self.model.current_round == self.settings.num_rounds:
-            self.current_gui_time += 1500
-            # displaying the winner - team with highest net pop. change
-            self.winner = self.model.find_winner()
-            display_game_winner_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, self.winner, 'show')
+            self.current_gui_time += 1000
+            # finding and displaying the winner - team with highest net pop. change
+            self.model.find_winner()
+            display_game_winner_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, self.model.game_winner, 'show')
             self.view.board_frame.scheduled_tasks.append(display_game_winner_label_task)
+            # finding and recording the end of game results
+            self.model.calculate_levels_to_populations()
+            record_task = self.view.after(self.current_gui_time, lambda: model_helpers.record_start_and_end_data(self.model.levels_to_populations, False))
+            self.view.board_frame.scheduled_tasks.append(record_task)
+            # writing this game's round_log to last_game_round_log
+            round_logging_task = self.view.after(self.current_gui_time, model_helpers.transfer_round_logs)
+            self.view.board_frame.scheduled_tasks.append(round_logging_task)
+            # displaying export results button
+            self.view.left_menu_frame.game_controls.export_data_button.config(text='Export\nResults', style='highlighted_button.TButton')
+            display_export_button_task = self.view.after(self.current_gui_time, lambda: self.view.left_menu_frame.game_controls.export_data_button.grid(
+                **self.view.left_menu_frame.game_controls.export_data_button_grid_info)
+                )
+            self.view.board_frame.scheduled_tasks.append(display_export_button_task)
         else:
             # clearing the data from the model's previous squares and updating round number
             self.model.clear_board()
             # clearing all old scheduled tasks and labels - already over and done
-            self.view.after(self.current_gui_time, lambda: self.view.board_frame.scheduled_tasks.clear())
-            self.view.after(self.current_gui_time, lambda: self.view.board_frame.scheduled_labels.clear())
+            self.view.after(self.current_gui_time, self.view.board_frame.scheduled_tasks.clear)
+            self.view.after(self.current_gui_time, self.view.board_frame.scheduled_labels.clear)
             # scheduling next round
             scatter_pawns_task = self.view.after(self.current_gui_time, self.scatter_pawns)
             self.view.board_frame.scheduled_tasks.append(scatter_pawns_task)
@@ -292,29 +322,51 @@ class WidgetCommands:
         """
         Handles events when the user clicks the Reset Game button
         """
-        # deleting the old model
+        # deleting the old model    
         del self.model
-        # canceling all active visual tasks
-        while self.view.board_frame.scheduled_tasks:
-            task = self.view.board_frame.scheduled_tasks.pop()
-            self.view.after_cancel(task)
-        # removing any existent labels
-        for label in self.view.board_frame.scheduled_labels:
-            if label.winfo_exists():
-                label.destroy()
-        self.view.board_frame.scheduled_labels.clear()
+        # cancelling upcoming visuals/labels
+        self.cancel_all_tasks_and_visuals()
         # resetting the scoreboard
         self.view.right_menu_frame.scoreboard.reset_scoreboard_text()
         # unlocking the user's configuration settings
         self.change_configuration_widget_states('normal')
         # only showing the start game button
         self.change_game_buttons_shown('reset')
+        # if the export button exists, changing it's text - now the last game's results
+        self.view.left_menu_frame.game_controls.export_data_button.config(text='Export  Last\n    Results', style='TButton')
+
+    def autofinish_game_button_command(self) -> None:
+        """
+        Handles events when the user clicks the Autofinish Game button -
+        pretty much just cancels the visuals, displays the winner,
+        and records all data
+        """
+        # cancelling upcoming visuals/labels
+        self.cancel_all_tasks_and_visuals()
+        
+
 
         
     def export_data_to_excel_button_command(self) -> None:
         """
         Handles events when the user clicks the Export Game Data to Excel button
         """
+        model_helpers.export_game_data_to_excel()
+    
+    def cancel_all_tasks_and_visuals(self) -> None:
+        """
+        Cancels all the scheduled tasks and destroys all labels on the screen
+        needed to immediately stop the visuals for the reset and autofinish game buttons
+        """
+        # canceling all active visual tasks
+        while self.view.board_frame.scheduled_tasks:
+            task = self.view.board_frame.scheduled_tasks.pop()
+            self.view.board_frame.after_cancel(task)
+        # removing any existent labels
+        for label in self.view.board_frame.scheduled_labels:
+            if label.winfo_exists():
+                label.destroy()
+        self.view.board_frame.scheduled_labels.clear()
 
     def change_configuration_widget_states(self, state: str) -> None:
         """
