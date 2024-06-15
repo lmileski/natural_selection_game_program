@@ -3,6 +3,7 @@ Helper functions for the model component of the program
 """
 
 import os
+import json
 from platform import system
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
@@ -223,13 +224,33 @@ def export_game_data_to_excel(round_data_filename='game_results_logs/last_game_r
         - round_data_filename='game_results_logs/round_log.csv': the round data (predator/prey populations and avg. levels)
         - start_of_game_data_filename='game_results_logs/start_of_game_log.csv': the starting game data (predator/prey skill levels-populations)
         - end_of_game_data_filename='game_results_logs/end_of_game_log.csv': the ending game data (predator/prey skill levels-populations)
-        - game_configurations_filename='game_settings_logs/previous_game_configurations.json': the last game's configurations
+        - game_configurations_filename='game_settings_logs/user_configurations.json': the last game's configurations
     """
-    # creating df's for each file
+        # creating df's for each file
     round_df = pd.read_csv(round_data_filename)
     start_of_game_df = pd.read_csv(start_of_game_data_filename)
     end_of_game_df = pd.read_csv(end_of_game_data_filename)
-    game_configurations_df = pd.read_json(game_configurations_filename)
+
+    # reworking the format of the user's game settings to fit nicely in excel tables
+    with open(game_configurations_filename) as file:
+        data = json.load(file)
+
+    # adding content to dictionary
+    transformed_data = {}
+    for outer_key, inner_dict in data.items():
+        transformed_data[outer_key] = [f"{inner_key}: {value}" for inner_key, value in inner_dict.items()]
+
+    # finding maximum length of list value - necessary to have all pd.df values the same length
+    max_len = max(len(lst) for lst in transformed_data.values())
+
+    # Pad shorter lists with empty strings to ensure all lists have the same length
+    for key in transformed_data:
+        length_difference = max_len - len(transformed_data[key])
+        if length_difference > 0:
+            transformed_data[key].extend([""] * length_difference)
+    
+    # converting to pd.df
+    game_configurations_df = pd.DataFrame(transformed_data)
 
     # finding proper filename
     filename = get_new_filename('Natural_Selection_Game_Data.xlsx')

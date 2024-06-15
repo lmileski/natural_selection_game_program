@@ -157,8 +157,8 @@ class WidgetCommands:
         # setting up the model upon its initialization depending on the user's configurations
         self.controller.model = BoardModel(self.settings)
         self.model = self.controller.model
-        # recording the starting game data and starting round 0 data
-        model_helpers.record_start_and_end_data(self.model.levels_to_populations, True)
+        # finding the starting game data and recording the round 0 data
+        self.initial_levels_to_populations = self.model.levels_to_populations
         model_helpers.record_round_data(
             (self.model.current_round, self.model.total_populations, self.model.average_levels, 'n/a')
         )
@@ -213,7 +213,7 @@ class WidgetCommands:
         # displaying the 'start round' button if the user has pause between rounds on
         if self.settings.pause_between_rounds == 'on': # autofinish is never on when pause between rounds is on
             # for autofinish game button
-            self.view.after(self.current_gui_time, lambda command=self.finish_round_button_command: setattr(self, 'next_game_command', command))
+            self.view.after(self.current_gui_time, lambda command=self.start_round_button_command: setattr(self, 'next_game_command', command))
             # displaying the round start button
             display_start_round_button_task = self.view.after(self.current_gui_time, lambda:
                 self.view.left_menu_frame.game_controls.start_round_button.grid(**self.view.left_menu_frame.game_controls.start_round_button_grid_info))
@@ -275,7 +275,7 @@ class WidgetCommands:
                 self.view.left_menu_frame.game_controls.finish_round_button.grid(**self.view.left_menu_frame.game_controls.finish_round_button_grid_info))
             self.view.board_frame.scheduled_tasks.append(display_finish_round_button_task)
             # for autofinish game button
-            self.view.after(self.current_gui_time, lambda command=self.scatter_pawns: setattr(self, 'next_game_command', command))
+            self.view.after(self.current_gui_time, lambda command=self.finish_round_button_command: setattr(self, 'next_game_command', command))
             self.current_gui_time = 0
         else:
             if self.settings.autofinish_game == 'off':
@@ -323,11 +323,13 @@ class WidgetCommands:
             if self.settings.autofinish_game == 'off':
                 display_game_winner_label_task = self.view.after(self.current_gui_time, self.view.board_frame.display_game_winner_label, self.model.game_winner, 'show')
                 self.view.board_frame.scheduled_tasks.append(display_game_winner_label_task)
-            # finding and recording the end of game results
+            # finding and recording the start and end of game results
+            model_helpers.record_start_and_end_data(self.initial_levels_to_populations, True)
             self.model.calculate_levels_to_populations()
             model_helpers.record_start_and_end_data(self.model.levels_to_populations, False)
             # writing this game's round_log to last_game_round_log
             model_helpers.transfer_round_logs()
+
             if self.settings.autofinish_game == 'off':
                 # displaying export results button
                 configure_export_button_task = self.view.after(self.current_gui_time, lambda: self.view.left_menu_frame.game_controls.export_data_button.config(

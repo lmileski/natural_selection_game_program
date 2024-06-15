@@ -1,6 +1,6 @@
 {
     "predator": {
-        "num_initial_predators": 256,
+        "num_initial_predators": 16,
         "predator_starting_level": 5,
         "rounds_until_starvation": 2,
         "min_rounds_until_starvation": 1,
@@ -12,7 +12,7 @@
         "predator_outline_color": "firebrick"
     },
     "prey": {
-        "num_initial_prey": 256,
+        "num_initial_prey": 16,
         "prey_starting_level": 5,
         "prey_symbol": "circle",
         "prey_outline_color": "dark green",
@@ -40,8 +40,8 @@
         "boardkey_text_label_color": "black"
     },
     "board": {
-        "customized_starting_animals": "on",
-        "board_length": 8,
+        "customized_starting_animals": "off",
+        "board_length": 5,
         "min_board_length": 1,
         "max_board_length": 8,
         "checkered_color1": "navajowhite4",
@@ -49,9 +49,9 @@
     },
     "change_of_rounds": {
         "num_rounds": 3,
-        "pause_between_rounds": "off",
+        "pause_between_rounds": "on",
         "autofinish_game": "off",
-        "delay_between_rounds": 0,
+        "delay_between_rounds": 5,
         "random_pawn_placement_time": 1500,
         "delay_between_board_labels": 800,
         "delay_between_square_results_labels": 400,
