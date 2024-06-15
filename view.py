@@ -925,7 +925,7 @@ class GameControls(tk.Frame):
         self.placeholder_label = ttk.Label(self, text='', background=self.background_color)
         # creating a scale to the user assign a certain number of rounds for the game
         self.number_of_rounds_scale_label = ttk.Label(self, text='Number of Rounds:', background=self.background_color, font=("Arial", 16, 'bold'))
-        self.number_of_rounds_scale = ttk.Scale(self, from_=1, to=30, length=150)
+        self.number_of_rounds_scale = ttk.Scale(self, from_=1, to=99, length=150)
         num_rounds = self.parent.parent.settings.num_rounds
         self.number_of_rounds_scale.set(num_rounds) # set at default
         self.number_of_rounds_scale_marker = ttk.Label(self, text=num_rounds, background=self.background_color, font=("Arial", 16, 'bold'))
