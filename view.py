@@ -817,15 +817,15 @@ class Title(tk.Frame):
         
         # adding credits/hyperlinks to title row corners
         self.program_credit = ttk.Label(self, text='Program by Luke Mileski',
-                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        font=(self.parent.settings.title_font, 12, 'bold'),
                                         background=self.parent.settings.title_background_color)
         
         self.game_idea_credit = ttk.Label(self, text="Lab Game Idea by\nUSD's Dr. Searcy",
-                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        font=(self.parent.settings.title_font, 12, 'bold'),
                                         background=self.parent.settings.title_background_color)
         
         self.link_to_github = ttk.Label(self, text="View my Github",
-                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        font=(self.parent.settings.title_font, 12, 'bold'),
                                         background=self.parent.settings.title_background_color,
                                         cursor='hand2', foreground='dodgerblue3')
         self.link_to_github.bind("<Button-1>", lambda e: webbrowser.open( # making link label an actual link
@@ -833,11 +833,19 @@ class Title(tk.Frame):
         
         # adding link to online game details document
         self.link_to_game_details = ttk.Label(self, text='View Lab Game Details',
-                                        font=(self.parent.settings.title_font, 13, 'bold'),
+                                        font=(self.parent.settings.title_font, 12, 'bold'),
                                         background=self.parent.settings.title_background_color,
                                         cursor='hand2', foreground='dodgerblue3')
         self.link_to_game_details.bind("<Button-1>", lambda e: webbrowser.open(
             'https://d.docs.live.net/3d8c06f048f6c577/Natural%20Selection%20Lab%20Automation.docx'))
+        
+        # adding link to review form
+        self.link_to_review_form = ttk.Label(self, text='Review This Program',
+                                        font=(self.parent.settings.title_font, 12, 'bold'),
+                                        background=self.parent.settings.title_background_color,
+                                        cursor='hand2', foreground='dodgerblue3')
+        self.link_to_review_form.bind("<Button-1>", lambda e: webbrowser.open(
+            'https://docs.google.com/forms/d/e/1FAIpQLSduCBih2TzSOCG_rc5sQ_SZZrGLK6um6K9d3Sa8OO_rdWQ7LQ/viewform?usp=sf_link'))
 
     def set_widgets(self):
         """
@@ -849,8 +857,9 @@ class Title(tk.Frame):
         self.program_credit.place(relx=0.004, rely=0.02)
         self.game_idea_credit.place(relx=0.004, rely=0.45)
 
-        self.link_to_github.place(relx=0.917, rely=0.02)
-        self.link_to_game_details.place(relx=0.88, rely=0.65)
+        self.link_to_github.place(relx=0.922, rely=0.02)
+        self.link_to_game_details.place(relx=0.886, rely=0.35)
+        self.link_to_review_form.place(relx=0.897, rely=0.67)
 
 
 class LeftMenu(tk.Frame):

@@ -403,10 +403,6 @@ class WidgetCommands:
         self.settings.update_settings(('change_of_rounds', 'pause_between_rounds', previous_pause_between_rounds))
         self.settings.update_settings(('change_of_rounds', 'autofinish_game', 'off'))
 
-        
-
-
-        
     def export_data_to_excel_button_command(self) -> None:
         """
         Handles events when the user clicks the Export Game Data to Excel button
