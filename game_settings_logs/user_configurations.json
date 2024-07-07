@@ -48,7 +48,7 @@
         "checkered_color2": "mint cream"
     },
     "change_of_rounds": {
-        "num_rounds": 99,
+        "num_rounds": 3,
         "pause_between_rounds": "on",
         "autofinish_game": "off",
         "delay_between_rounds": 5,
