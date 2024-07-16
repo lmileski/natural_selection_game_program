@@ -2,7 +2,7 @@
 
 ## A customizable GUI board game written in Python that simulates trends in natural selection.
 
-<img src="natural_selection_program_picture.png" width=900 height=600>
+<img src="natural_selection_program_picture.png" width=900 height=500>
 
 
 This project automates University of San Diego's EOSC 123 natural selection lab. The intention of this application is to supplement the lab by allowing students to efficiently test their claims on natural selection. In addition to the substantial reduction in time constraint, this program also eliminates the likelihood of human error, allows for customizations, and automatically generates excel tables holding the completed game's data.
@@ -25,6 +25,9 @@ The following is a list of components in this application's GUI layout:
 * A Scoreboard panel holding the current round and predator/prey pawn stats (population, skill level, and sateity level)
 * A Board Key panel describing the predator/prey pawn visuals and result symbols
 
+## Read the rules!
+
+https://onedrive.live.com/edit.aspx?resid=3d8c06f048f6c577!3629
 
 ## Watch a demo on how to use the application!
 
@@ -48,3 +51,7 @@ extra installation steps are required due to incompatibilities. You must either:
 * This option is less recommended
 * It requires you to also install all modules used in my code.
 * May be more complicated for non-coders
+
+## Leave a review!
+
+https://docs.google.com/forms/d/e/1FAIpQLSduCBih2TzSOCG_rc5sQ_SZZrGLK6um6K9d3Sa8OO_rdWQ7LQ/viewform
