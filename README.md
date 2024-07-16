@@ -40,13 +40,14 @@ https://youtu.be/bOwVrPre-oM?si=Spf6fwqrfpR1AqF1
 **Note:**
 The installation video is designed for Windows computers.
 If you have a Windows computer, use that. However, if you must use Mac or Linux,
-extra installation steps are required due to incompatibilities. You must either:
+extra installation steps are required due to incompatibilities. You must complete all
+steps mentioned in my installation demo video then either:
 1) Download Wine and use that to run the .exe file from my code provided
 
 * Video on how to do so for Mac: https://www.youtube.com/watch?v=Bz-nI4LW2Jw&t=0s
 * Video on how to do so for Linux: https://www.youtube.com/watch?v=TatVttlvo2A&t=0s
 
-2) Run the controller.py file from my provided code in your own terminal
+2) Or run the controller.py file from my provided code in your own terminal
 
 * This option is less recommended
 * It requires you to also install all modules used in my code.
