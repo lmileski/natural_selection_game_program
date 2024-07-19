@@ -33,11 +33,6 @@ class Controller:
         # starting gui
         self.view.mainloop()
 
-    def conduct_round(self) -> None:
-        """
-        Conducts the data and visual changes for when the user starts any round
-        """
-
     def assign_models_to_views(self, start_of_round = False):
         """
         Assigns the board and square views their appropriate board or square model
