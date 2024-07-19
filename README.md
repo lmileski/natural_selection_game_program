@@ -53,4 +53,12 @@ Also please leave a review using the above link. It helps a ton!
 
 ## Code Synopsis
 
+The natural selection simulation is built fully in python and utilizes the tkinter library for the GUI. I organized the code using the MVC architecture by creating separate files for the model, view, and controller. Supplementary functions related to the model such as file writing, recording data, and game logic were placed is model_helpers.py. All data required for the completion of the lab is recorded throughout the game in various .csv files found under the game_results_logs folder. The default and user-configured settings to be modified throughout the game are stored as .json files under the game_settings_logs. Lastly, either start_program_here.exe or controller.py can be run to start the simulation, but only from their relevant placement within the folder.
 
+## Rundown of File Contents
+
+### view.py
+
+### model.py
+
+### controller.py
