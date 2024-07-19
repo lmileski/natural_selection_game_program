@@ -59,7 +59,7 @@ The natural selection simulation is built fully in python and utilizes the tkint
 
 ### model.py
 
-**CurrentSettings**
+**CurrentSettings class**
 
 * Initialized with attributes of all settings found in the default_configurations.json file
 * The CurrentSettings instance then updates its configuration attributes whenever the user makes a modification via the settings panel
@@ -78,7 +78,7 @@ The natural selection simulation is built fully in python and utilizes the tkint
         - PredatorModel(Animal) (# objects = # surviving predators in square)
         - PreyModel(Animal) (# objects = # surviving prey in square)
 
-**BoardModel**
+**BoardModel class**
 
 * Calculates various data required for the lab via all its methods starting with calculate_
 * Its modify_board_survivors() function is the primary call for updating round results -
@@ -109,7 +109,7 @@ The natural selection simulation is built fully in python and utilizes the tkint
             - PredatorView(tk.Frame)
             - PreyView(tk.Canvas)
 
-**BoardView:**
+**BoardView class:**
 
 * The largest class in view.py because the board is the main area where changes to the GUI are displayed
 * Holds a 1d, 2d, and diagonal matrix of SquareView objects
@@ -119,7 +119,7 @@ The natural selection simulation is built fully in python and utilizes the tkint
 
 ### controller.py
 
-**Controller**
+**Controller class**
 
 * Integrates the model and view via its assign_models_to_views method:
     * Attributes to the view a 2d array of SquareModel objects
@@ -128,7 +128,7 @@ The natural selection simulation is built fully in python and utilizes the tkint
 
 * Sets all commands via a call to the set_widget_commands method, which takes the controller object itself as an argument
 
-**WidgetCommands**
+**WidgetCommands class**
 
 * Majority of commands are for updating the visuals/CurrentSettings when the user interacts with the scale/checkboxes in the customize settings panel
 * The mainloop of the game comes from the ordered calls to the following methods:
