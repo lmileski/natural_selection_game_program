@@ -820,7 +820,7 @@ class Title(tk.Frame):
                                         font=(self.parent.settings.title_font, 12, 'bold'),
                                         background=self.parent.settings.title_background_color)
         
-        self.game_idea_credit = ttk.Label(self, text="Lab Game Idea by\nUSD's Dr. Searcy",
+        self.game_idea_credit = ttk.Label(self, text="Lab Game Idea by\nIUP's Dr. Gendron",
                                         font=(self.parent.settings.title_font, 12, 'bold'),
                                         background=self.parent.settings.title_background_color)
         
